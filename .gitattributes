@@ -1,0 +1,14 @@
+# Normalise everything to LF in the repository.
+#
+# The working copy on Windows uses CRLF (core.autocrlf=true), but the repository — and
+# therefore CI on ubuntu-latest — must be LF. The `themes-only` job in ci.yml runs shell
+# scripts, and a CRLF script fails on Linux with `bad interpreter: /bin/sh^M`, which is a
+# confusing way to learn about line endings.
+#
+# PNGs are listed as binary so Git never tries to normalise them.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.woff2 binary
+*.woff binary

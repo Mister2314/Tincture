@@ -1,0 +1,60 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "midnight",
+  "name": "Midnight",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "dark",
+  "description": "Deep indigo-black with a warm amber accent. The default after dark.",
+  "tokens": {
+    "color": {
+      "bg": "#0b0b10",
+      "bgElevated": "#12121a",
+      "surface": "#16161f",
+      "surfaceHover": "#1d1d28",
+      "surfaceActive": "#242431",
+      "text": "#ececf1",
+      "textMuted": "#a0a0b0",
+      "textSubtle": "#6b6b7d",
+      "accent": "#e8a33d",
+      "accentHover": "#f2b558",
+      "accentText": "#0b0b10",
+      "border": "#262633",
+      "borderStrong": "#3a3a4c",
+      "focusRing": "#e8a33d",
+      "success": "#4ec9a0",
+      "danger": "#e8576f"
+    },
+    "dimension": {
+      "radiusSm": "6px",
+      "radiusMd": "12px",
+      "radiusLg": "20px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "instrument-serif",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#00000066" },
+      "elevated": [
+        { "x": 0, "y": 8, "blur": 24, "spread": -4, "color": "#00000099" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#0000004d" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.04,
+    "glow": 0.3,
+    "motion": 1,
+    "blur": 12
+  }
+}

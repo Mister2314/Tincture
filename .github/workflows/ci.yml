@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A submitted theme is a pull request that adds one JSON file. This workflow is what decides
+# whether it is acceptable — not a human reading a diff, and not the app at runtime.
+#
+# Two independent gates run on every theme:
+#   1. the schema — fixed token names, typed values, bounded numbers
+#   2. a scan of every string in the file for CSS-injection shapes
+#
+# A failure here blocks the merge. `main` therefore only ever contains themes that passed.
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Tests, including the theme gate
+        run: npm test
+
+      - name: List themes that passed
+        if: success()
+        run: |
+          count=$(find themes -name '*.json' | wc -l)
+          echo "### $count theme(s) validated" >> "$GITHUB_STEP_SUMMARY"
+          find themes -name '*.json' -printf '- %f\n' | sort >> "$GITHUB_STEP_SUMMARY"
+
+  themes-only:
+    name: Theme-only pull request
+    # A PR that touches nothing but `themes/` is the common case, and it gets a fast,
+    # focused answer so a contributor is not left guessing which check failed.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Did this PR touch anything outside themes/?
+        id: scope
+        run: |
+          base="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1 || true
+          changed=$(git diff --name-only "$base"...HEAD || git diff --name-only HEAD~1)
+          outside=$(echo "$changed" | grep -v '^themes/' | grep -v '^$' || true)
+          if [ -z "$outside" ]; then
+            echo "theme_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "theme_only=false" >> "$GITHUB_OUTPUT"
+            echo "Changes outside themes/:" && echo "$outside"
+          fi
+
+      - name: Install
+        if: steps.scope.outputs.theme_only == 'true'
+        run: npm ci
+
+      - name: Validate the submitted themes
+        if: steps.scope.outputs.theme_only == 'true'
+        run: npx vitest run src/theme/community.test.ts
+
+      - name: Comment on the pull request
+        if: steps.scope.outputs.theme_only == 'true' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ok = '${{ steps.validate.outcome }}' !== 'failure';
+            const body = ok
+              ? '**Theme validated.** Every token is typed, in range, and free of anything that could reach the network. A maintainer will merge it.'
+              : '**Theme rejected.** The check output above names the token and the reason. Fix those and push again — nothing else is required.';
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });

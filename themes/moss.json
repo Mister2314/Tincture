@@ -1,0 +1,60 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "moss",
+  "name": "Moss",
+  "author": "Mister2314",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "Herbarium green on off-white. For a desk near a window.",
+  "tokens": {
+    "color": {
+      "bg": "#f4f5f0",
+      "bgElevated": "#fbfcf8",
+      "surface": "#ffffff",
+      "surfaceHover": "#eef1e9",
+      "surfaceActive": "#e3e8dc",
+      "text": "#1f2a22",
+      "textMuted": "#586b5c",
+      "textSubtle": "#8b9a8d",
+      "accent": "#3f7d52",
+      "accentHover": "#336a44",
+      "accentText": "#ffffff",
+      "border": "#dde3d7",
+      "borderStrong": "#c0cab8",
+      "focusRing": "#3f7d52",
+      "success": "#3f7d52",
+      "danger": "#b04a3f"
+    },
+    "dimension": {
+      "radiusSm": "6px",
+      "radiusMd": "12px",
+      "radiusLg": "18px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "instrument-serif",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#1f2a2212" },
+      "elevated": [
+        { "x": 0, "y": 8, "blur": 22, "spread": -5, "color": "#1f2a221c" },
+        { "x": 0, "y": 2, "blur": 5, "spread": 0, "color": "#1f2a220d" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.02,
+    "glow": 0.12,
+    "motion": 1,
+    "blur": 10
+  }
+}

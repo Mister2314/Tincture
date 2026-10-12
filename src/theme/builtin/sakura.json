@@ -1,0 +1,60 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "sakura",
+  "name": "Sakura",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "Blossom pink on warm washi, with a deep plum accent.",
+  "tokens": {
+    "color": {
+      "bg": "#fdf6f5",
+      "bgElevated": "#fffbfa",
+      "surface": "#ffffff",
+      "surfaceHover": "#fbeef0",
+      "surfaceActive": "#f6e0e4",
+      "text": "#38282c",
+      "textMuted": "#7a6169",
+      "textSubtle": "#a8919a",
+      "accent": "#c9527a",
+      "accentHover": "#b03f66",
+      "accentText": "#ffffff",
+      "border": "#f0dde2",
+      "borderStrong": "#dcbfc8",
+      "focusRing": "#c9527a",
+      "success": "#4a8f74",
+      "danger": "#c0405a"
+    },
+    "dimension": {
+      "radiusSm": "8px",
+      "radiusMd": "16px",
+      "radiusLg": "28px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "instrument-serif",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#38282c14" },
+      "elevated": [
+        { "x": 0, "y": 10, "blur": 26, "spread": -6, "color": "#38282c1f" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#38282c0f" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.015,
+    "glow": 0.18,
+    "motion": 1.1,
+    "blur": 10
+  }
+}

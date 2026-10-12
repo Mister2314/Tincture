@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+    <!--
+      Content-Security-Policy, defence in depth.
+
+      The theme engine already makes remote fetches unreachable from theme data — a theme
+      cannot express url(), and the only values that reach CSS are hex colours, bounded
+      dimensions, bundled font names and structured shadows. This policy is the layer under
+      that: even if a value somehow escaped, there is no origin for it to call.
+
+      connect-src is the one deliberate opening, and it is limited to GitHub, because the
+      community gallery reads themes from the public repository.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
+    />
+
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="A Pomodoro focus timer with a community theme system. Themes are typed tokens, never CSS — so a contributed theme cannot leak anything."
+    />
+    <meta name="theme-color" content="#0b0b10" />
+
+    <title>Tincture — focus timer with themes</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      Tincture is a client-side app and needs JavaScript. Nothing is sent to a server, so
+      enabling it is the whole requirement.
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

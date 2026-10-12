@@ -1,0 +1,60 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "daylight",
+  "name": "Daylight",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "Warm paper white with an ink-blue accent. Quiet in a bright room.",
+  "tokens": {
+    "color": {
+      "bg": "#faf8f5",
+      "bgElevated": "#ffffff",
+      "surface": "#ffffff",
+      "surfaceHover": "#f4f1ec",
+      "surfaceActive": "#eae5dd",
+      "text": "#1c1a17",
+      "textMuted": "#5f5a52",
+      "textSubtle": "#8f8880",
+      "accent": "#2f5d8a",
+      "accentHover": "#264d73",
+      "accentText": "#ffffff",
+      "border": "#e2ddd4",
+      "borderStrong": "#c8c1b5",
+      "focusRing": "#2f5d8a",
+      "success": "#2f7d5d",
+      "danger": "#b8443f"
+    },
+    "dimension": {
+      "radiusSm": "6px",
+      "radiusMd": "12px",
+      "radiusLg": "20px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "instrument-serif",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#1c1a1714" },
+      "elevated": [
+        { "x": 0, "y": 8, "blur": 24, "spread": -4, "color": "#1c1a171f" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#1c1a170f" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.02,
+    "glow": 0,
+    "motion": 1,
+    "blur": 10
+  }
+}

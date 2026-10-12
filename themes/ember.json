@@ -1,0 +1,60 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "ember",
+  "name": "Ember",
+  "author": "Mister2314",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "dark",
+  "description": "Charcoal and burnt orange, low contrast on purpose. Kind to tired eyes at 2am.",
+  "tokens": {
+    "color": {
+      "bg": "#141110",
+      "bgElevated": "#1c1817",
+      "surface": "#221d1b",
+      "surfaceHover": "#2b2422",
+      "surfaceActive": "#352c29",
+      "text": "#f2ece6",
+      "textMuted": "#b3a79c",
+      "textSubtle": "#7d7268",
+      "accent": "#e2703a",
+      "accentHover": "#f0834f",
+      "accentText": "#141110",
+      "border": "#312a27",
+      "borderStrong": "#4a3f3a",
+      "focusRing": "#e2703a",
+      "success": "#6fae7c",
+      "danger": "#d9584f"
+    },
+    "dimension": {
+      "radiusSm": "4px",
+      "radiusMd": "10px",
+      "radiusLg": "16px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "instrument-serif",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#00000073" },
+      "elevated": [
+        { "x": 0, "y": 6, "blur": 20, "spread": -4, "color": "#000000a6" },
+        { "x": 0, "y": 2, "blur": 5, "spread": 0, "color": "#00000059" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.07,
+    "glow": 0.4,
+    "motion": 0.9,
+    "blur": 10
+  }
+}
