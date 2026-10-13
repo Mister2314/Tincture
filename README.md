@@ -106,7 +106,7 @@ src/
     schema.ts      zod schemas — the single source of truth for what a theme may contain
     validate.ts    validation, alias resolution, human-readable errors
     apply.ts       validated tokens -> CSS custom properties
-    builtin/       the four shipped themes, as JSON
+    builtin/       the nine shipped themes, as JSON
   app/
     timer/engine.ts   the timer as pure functions over an anchor timestamp
     state/            reducer, context, persistence

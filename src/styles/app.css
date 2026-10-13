@@ -195,6 +195,52 @@ h4 {
 }
 
 /* --------------------------------------------------------------------------
+   View transition
+
+   One rhythm for every view. The wrapper fades; the blocks inside it rise, one after
+   another. The stagger delay is a *position*, not a decision — `nth-child` is enough, and
+   it keeps the timing out of every view's markup, so a view added later gets the same
+   entrance without being told about it.
+
+   `backwards` rather than `both` on purpose: during the delay the element holds the *start*
+   state, and once the animation ends it returns to its natural style. With `both` it would
+   keep a transform forever, which silently creates a containing block and a stacking
+   context on every card in the app — the kind of thing that breaks `position: fixed`
+   children six months later.
+   -------------------------------------------------------------------------- */
+
+.view {
+  min-width: 0;
+}
+
+@keyframes view-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.view > section > * {
+  animation: view-rise calc(420ms * var(--motion-scale, 1)) var(--t-ease-out) backwards;
+}
+
+.view > section > *:nth-child(2) {
+  animation-delay: calc(45ms * var(--motion-scale, 1));
+}
+
+.view > section > *:nth-child(3) {
+  animation-delay: calc(90ms * var(--motion-scale, 1));
+}
+
+.view > section > *:nth-child(4) {
+  animation-delay: calc(135ms * var(--motion-scale, 1));
+}
+
+.view > section > *:nth-child(n + 5) {
+  animation-delay: calc(175ms * var(--motion-scale, 1));
+}
+
+/* --------------------------------------------------------------------------
    Header
    -------------------------------------------------------------------------- */
 
@@ -597,6 +643,232 @@ h4 {
 }
 
 /* --------------------------------------------------------------------------
+   Browser controls, replaced
+
+   These are the four places where a themed app leaks the operating system: a range slider,
+   a select's arrow, a colour swatch and a number spinner. Left alone they render in the
+   browser's colours, ignore every token, and make a carefully themed dialog look like two
+   products stitched together.
+   -------------------------------------------------------------------------- */
+
+/* Select. `appearance: none` removes the native arrow; the chevron is drawn on the wrapper
+   from two borders and a rotation, so it follows `--t-color-text-muted` like everything
+   else. A `background-image` chevron would need a hard-coded colour and would be wrong in
+   half the themes. */
+.select-wrap {
+  position: relative;
+  display: block;
+}
+
+.select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -6px;
+  border-right: 1.8px solid var(--t-color-text-muted);
+  border-bottom: 1.8px solid var(--t-color-text-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+  transition: border-color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.select-wrap:hover::after {
+  border-color: var(--t-color-text);
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* Number. The app has a wheel picker for numbers; the desktop spinner arrows are a second,
+   worse way to do the same job and they mis-click. */
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Colour. `appearance: none` plus the swatch reset turns the native picker into a plain
+   rounded square that takes the theme's own radius — which a wrapper button never would,
+   because the chrome inside a colour input cannot be reached from the outside. */
+input[type='color'] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type='color']::-webkit-color-swatch {
+  border: 1px solid var(--t-color-border-strong);
+  border-radius: var(--t-dimension-radius-md);
+}
+
+input[type='color']::-moz-color-swatch {
+  border: 1px solid var(--t-color-border-strong);
+  border-radius: var(--t-dimension-radius-md);
+}
+
+input[type='color']:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--t-dimension-radius-md);
+}
+
+/* Range. Both vendor tracks and thumbs, because a slider styled in one engine only is a
+   slider that is half-styled in the other. */
+input[type='range'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 20px;
+  background: none;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-border);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-accent);
+  border: 2px solid var(--t-color-bg-elevated);
+  transition: transform var(--t-dur-fast) var(--t-ease-out);
+}
+
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.14);
+}
+
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.24);
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-border);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-accent);
+  border: 2px solid var(--t-color-bg-elevated);
+}
+
+input[type='range']:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--t-dimension-radius-full);
+}
+
+/* Slider row: label and value on one line, the track under them. */
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.slider__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--t-dimension-space-md);
+}
+
+.slider__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t-color-text-muted);
+}
+
+.slider__value {
+  font-family: var(--t-fontFamily-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-color-text);
+}
+
+/* Colour row: swatch, then name over hex. */
+.colour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--t-dimension-space-md);
+}
+
+.colour {
+  display: flex;
+  align-items: center;
+  gap: var(--t-dimension-space-sm);
+  min-width: 0;
+}
+
+.colour__swatch {
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+.colour__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.colour__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colour__hex {
+  font-family: var(--t-fontFamily-mono);
+  font-size: 12px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--t-color-text);
+  min-width: 0;
+  width: 100%;
+}
+
+.colour__hex:focus {
+  outline: none;
+  color: var(--t-color-accent);
+}
+
+/* --------------------------------------------------------------------------
    Switch
    -------------------------------------------------------------------------- */
 
@@ -838,26 +1110,135 @@ h4 {
   opacity: 1;
 }
 
+/* Hover is the only way the delete button was reachable, which on a touch screen means it
+   was not reachable at all. */
+@media (hover: none) {
+  .task__actions {
+    opacity: 1;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Task composer
+
+   One panel, two rows, a hairline between them. The panel is the focus target — the input
+   inside it has no border of its own, because a box inside a box is two things to look at
+   when there is one thing to do.
+
+   `:focus-within` rather than `:hover` for the lift: hover on a form is decoration, focus
+   is the state that means something. The mark turns a quarter turn at the same moment, so
+   the change is visible in the corner of the eye as well as at the caret.
    -------------------------------------------------------------------------- */
 
 .composer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 168px auto;
-  align-items: end;
-  gap: var(--t-dimension-space-md);
+  position: relative;
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-lg);
+  box-shadow: var(--t-shadow-card);
   margin-bottom: var(--t-dimension-space-lg);
+  transition:
+    border-color var(--t-dur-base) var(--t-ease-out),
+    box-shadow var(--t-dur-base) var(--t-ease-out),
+    transform var(--t-dur-base) var(--t-ease-out);
+}
+
+.composer:hover {
+  border-color: var(--t-color-border-strong);
+}
+
+.composer:focus-within {
+  border-color: var(--t-color-accent);
+  transform: translateY(-1px);
+  box-shadow:
+    var(--t-shadow-elevated),
+    0 0 0 3px color-mix(in srgb, var(--t-color-accent) 18%, transparent);
+}
+
+.composer__main {
+  display: flex;
+  align-items: center;
+  gap: var(--t-dimension-space-md);
+  padding: var(--t-dimension-space-md) var(--t-dimension-space-lg);
+}
+
+.composer__mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--t-dimension-radius-full);
+  border: 1px solid var(--t-color-border-strong);
+  color: var(--t-color-text-subtle);
+  transition:
+    transform var(--t-dur-base) var(--t-ease-out),
+    background var(--t-dur-base) var(--t-ease-out),
+    border-color var(--t-dur-base) var(--t-ease-out),
+    color var(--t-dur-base) var(--t-ease-out);
+}
+
+.composer__mark svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.composer:focus-within .composer__mark {
+  transform: rotate(90deg);
+  background: var(--t-color-accent);
+  border-color: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+/* 16px, not 15px: anything smaller makes iOS zoom the whole page when the field is
+   focused, which is a layout bug the user gets blamed for. */
+.composer__input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: var(--t-color-text);
+}
+
+.composer__input::placeholder {
+  color: var(--t-color-text-subtle);
+}
+
+.composer__input:focus {
+  outline: none;
+}
+
+.composer__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--t-dimension-space-md);
+  padding: var(--t-dimension-space-sm) var(--t-dimension-space-lg);
+  border-top: 1px solid var(--t-color-border);
+  flex-wrap: wrap;
+}
+
+/* The estimate reads as a chip: a quiet label, then the value. A stacked label above a
+   control is right in a settings list and wrong in a composer. */
+.composer__estimate .field {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--t-dimension-space-sm);
 }
 
 .composer__estimate .field__label {
   white-space: nowrap;
+  font-weight: 500;
+  color: var(--t-color-text-subtle);
 }
 
-@media (max-width: 720px) {
-  .composer {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.composer__estimate .value-pill {
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: var(--t-dimension-radius-full);
 }
 
 /* --------------------------------------------------------------------------
@@ -925,8 +1306,107 @@ h4 {
 }
 
 /* --------------------------------------------------------------------------
-   Theme grid
+   Theme gallery — filter, sections, cards
+
+   Split by appearance, because that is the only question anyone arrives with: "something
+   dark for tonight" is a real need, "all nine, alphabetically" is not. The filter row
+   carries the same information as a second axis, so the grid can stay a grid.
    -------------------------------------------------------------------------- */
+
+.theme-filter {
+  display: flex;
+  gap: var(--t-dimension-space-xs);
+  padding: var(--t-dimension-space-xs);
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-full);
+  margin-bottom: var(--t-dimension-space-lg);
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.theme-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px var(--t-dimension-space-md);
+  border-radius: var(--t-dimension-radius-full);
+  font-size: 13.5px;
+  font-weight: 600;
+  /* `text`, not `textMuted`. An unselected chip is a live option, and `textMuted` on a
+     surface reads as disabled — a filter nobody clicks because it looks switched off.
+     The count is where the quiet belongs. */
+  color: var(--t-color-text);
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.theme-filter__chip:hover {
+  background: var(--t-color-surface-hover);
+}
+
+.theme-filter__chip[aria-pressed='true'] {
+  background: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+.theme-filter__count {
+  font-family: var(--t-fontFamily-mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-color-text-subtle);
+}
+
+.theme-filter__chip[aria-pressed='true'] .theme-filter__count {
+  color: inherit;
+  opacity: 0.72;
+}
+
+/* A dark theme and a light theme are not two colours of one thing — they are the two
+   conditions the app gets used in. The dot says which before the label is read. */
+.theme-filter__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--t-dimension-radius-full);
+  border: 1px solid currentColor;
+}
+
+.theme-filter__dot[data-appearance='dark'] {
+  background: #101018;
+}
+
+.theme-filter__dot[data-appearance='light'] {
+  background: #f6f2ea;
+}
+
+.theme-section + .theme-section {
+  margin-top: var(--t-dimension-space-xl);
+}
+
+.theme-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--t-dimension-space-sm);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t-color-text-muted);
+  margin-bottom: var(--t-dimension-space-md);
+}
+
+.theme-section__count {
+  font-family: var(--t-fontFamily-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  color: var(--t-color-text-subtle);
+  padding: 1px 7px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-surface-active);
+}
 
 .theme-grid {
   display: grid;
@@ -936,18 +1416,22 @@ h4 {
 
 .theme-card {
   position: relative;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--t-color-border);
   border-radius: var(--t-dimension-radius-lg);
   overflow: hidden;
   background: var(--t-color-surface);
-  transition: border-color var(--t-dur-fast) ease, transform var(--t-dur-fast) ease;
-  width: 100%;
+  transition:
+    border-color var(--t-dur-base) var(--t-ease-out),
+    transform var(--t-dur-base) var(--t-ease-out),
+    box-shadow var(--t-dur-base) var(--t-ease-out);
 }
 
 .theme-card:hover {
   border-color: var(--t-color-border-strong);
   transform: translateY(-2px);
+  box-shadow: var(--t-shadow-card);
 }
 
 .theme-card[data-selected='true'] {
@@ -955,35 +1439,76 @@ h4 {
   box-shadow: 0 0 0 1px var(--t-color-accent);
 }
 
+/* The apply action is its own button and the delete action is a sibling — not a
+   `role="button"` span nested inside a button. Nested interactive content is invalid,
+   unreachable by keyboard, and needed `stopPropagation` on every handler to behave. */
+.theme-card__apply {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-card__apply:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: -2px;
+}
+
 .theme-card__preview {
-  height: 116px;
-  padding: var(--t-dimension-space-md);
+  height: 128px;
+  padding: var(--t-dimension-space-md) var(--t-dimension-space-lg);
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--t-dimension-space-md);
 }
 
-.theme-card__swatches {
-  display: flex;
-  gap: 6px;
+.theme-card__ring-wrap {
+  position: relative;
+  flex: none;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
 }
 
-.theme-card__swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: var(--t-dimension-radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+.theme-card__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.theme-card__ring-track {
+  stroke: var(--t-color-border);
+}
+
+.theme-card__ring-value {
+  stroke: var(--t-color-accent);
 }
 
 .theme-card__sample {
   font-family: var(--t-fontFamily-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 26px;
-  line-height: 1;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.theme-card__strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theme-card__swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--t-dimension-radius-full);
+  border: 1px solid color-mix(in srgb, var(--t-color-text) 14%, transparent);
 }
 
 .theme-card__meta {
-  padding: var(--t-dimension-space-md);
+  padding: var(--t-dimension-space-sm) var(--t-dimension-space-lg) var(--t-dimension-space-md);
   border-top: 1px solid var(--t-color-border);
   display: flex;
   align-items: center;
@@ -991,14 +1516,66 @@ h4 {
   gap: var(--t-dimension-space-sm);
 }
 
+.theme-card__id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .theme-card__name {
   font-weight: 600;
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* The motif name, in mono — it is an identifier, and it is the one thing about a theme a
+   card cannot show as a colour. */
 .theme-card__author {
-  font-size: 12px;
+  font-family: var(--t-fontFamily-mono);
+  font-size: 11px;
   color: var(--t-color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.theme-card__delete {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--t-dimension-radius-full);
+  color: var(--t-color-text-subtle);
+  font-size: 12px;
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.theme-card__delete:hover {
+  background: color-mix(in srgb, var(--t-color-danger) 14%, transparent);
+  color: var(--t-color-danger);
+}
+
+/* The gallery's one-line description, under the meta row. */
+.theme-card__desc {
+  padding: 0 var(--t-dimension-space-lg) var(--t-dimension-space-md);
+  font-size: 12.5px;
+  color: var(--t-color-text-subtle);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .badge {
@@ -1182,6 +1759,120 @@ h4 {
 }
 
 /* --------------------------------------------------------------------------
+   Drop zone — the file input, dressed as part of the app
+
+   `<input type="file">` cannot be styled past its border: the button inside it, its label
+   and its layout are the browser's and follow the operating system, not the theme. So the
+   input is kept and hidden, and the zone around it is its `<label>` — one focusable
+   control, no keyboard trap, and the browser still does the file handling.
+   -------------------------------------------------------------------------- */
+
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--t-dimension-space-xl) var(--t-dimension-space-lg);
+  /* Mixed from `text`, not from `borderStrong`: a dashed line is the only thing marking the
+     zone, and `borderStrong` is tuned for a hairline against a surface, not for being the
+     whole affordance. 26% of the text colour is visible in every theme without shouting. */
+  border: 1.5px dashed color-mix(in srgb, var(--t-color-text) 26%, transparent);
+  border-radius: var(--t-dimension-radius-lg);
+  background: color-mix(in srgb, var(--t-color-surface) 60%, transparent);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color var(--t-dur-base) var(--t-ease-out),
+    background var(--t-dur-base) var(--t-ease-out),
+    transform var(--t-dur-base) var(--t-ease-out);
+}
+
+.dropzone:hover {
+  border-color: var(--t-color-accent);
+  background: color-mix(in srgb, var(--t-color-accent) 7%, transparent);
+}
+
+.dropzone[data-over='true'] {
+  border-color: var(--t-color-accent);
+  border-style: solid;
+  background: color-mix(in srgb, var(--t-color-accent) 14%, transparent);
+  transform: scale(1.01);
+}
+
+.dropzone:focus-within {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* 1px rather than `display: none`: a `display: none` input cannot be focused, and the whole
+   zone would stop being reachable by keyboard. */
+.dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropzone__icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-surface-active);
+  color: var(--t-color-text-muted);
+  margin-bottom: 2px;
+  transition:
+    background var(--t-dur-base) var(--t-ease-out),
+    color var(--t-dur-base) var(--t-ease-out);
+}
+
+.dropzone__icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.dropzone:hover .dropzone__icon,
+.dropzone[data-over='true'] .dropzone__icon {
+  background: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+.dropzone__title {
+  font-weight: 600;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.dropzone__hint {
+  font-size: 12.5px;
+  color: var(--t-color-text-subtle);
+}
+
+/* The "or" rule between the drop zone and the paste box. */
+.or-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--t-dimension-space-md);
+  color: var(--t-color-text-subtle);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.or-rule::before,
+.or-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--t-color-border);
+}
+
+/* --------------------------------------------------------------------------
    Dialog
    -------------------------------------------------------------------------- */
 
@@ -1192,26 +1883,69 @@ h4 {
   display: grid;
   place-items: center;
   padding: var(--t-dimension-space-lg);
-  background: color-mix(in srgb, var(--t-color-bg) 72%, transparent);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: color-mix(in srgb, var(--t-color-bg) 82%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .dialog {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 520px;
   max-height: 86vh;
-  overflow: auto;
+  /* The body scrolls, not the dialog. A `position: sticky` preview can only stick inside
+     the box that scrolls, and the theme builder is built around one. */
+  overflow: hidden;
   background: var(--t-color-bg-elevated);
   border: 1px solid var(--t-color-border-strong);
   border-radius: var(--t-dimension-radius-lg);
   box-shadow: var(--t-shadow-elevated);
-  padding: var(--t-dimension-space-lg);
+}
+
+/* For dialogs that are a workspace rather than a question. */
+.dialog--wide {
+  max-width: min(1040px, 94vw);
+}
+
+.dialog__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--t-dimension-space-md);
+  padding: var(--t-dimension-space-lg) var(--t-dimension-space-lg) var(--t-dimension-space-sm);
 }
 
 .dialog__title {
   font-size: 18px;
-  margin-bottom: var(--t-dimension-space-md);
+}
+
+.dialog__close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--t-dimension-radius-full);
+  color: var(--t-color-text-subtle);
+  font-size: 13px;
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.dialog__close:hover {
+  background: var(--t-color-surface-hover);
+  color: var(--t-color-text);
+}
+
+.dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--t-dimension-space-xs) var(--t-dimension-space-lg) var(--t-dimension-space-lg);
 }
 
 /* --------------------------------------------------------------------------
@@ -1472,11 +2206,24 @@ h4 {
    -------------------------------------------------------------------------- */
 
 .ambience {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The app-level layer: fills the viewport, behind the content. */
+.ambience--fixed {
   position: fixed;
   inset: 0;
   z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
+}
+
+/* The same layer inside a preview panel. It fills the panel and paints at the panel's own
+   base level, so whatever specimen sits on top only has to opt into `z-index: 1`. */
+.ambience--fill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
 }
 
 .ambience__art,
@@ -1642,4 +2389,372 @@ h4 {
   height: auto;
   transform: translate(-50%, -50%) rotate(-5deg);
   opacity: calc(var(--t-effect-ambience, 0) * 0.72);
+}
+
+/* --------------------------------------------------------------------------
+   Theme builder
+
+   Two columns: the controls scroll on the left, the preview stays put on the right. The
+   preview used to be a strip at the top of a scrolling list, so every control below the
+   fold was edited blind — and it only ever showed colours, because it was a plain div with
+   the theme's custom properties on it. Grain, glow, blur, motion and the motif were all
+   invisible: you could set them, and nothing anywhere would change.
+   -------------------------------------------------------------------------- */
+
+.builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--t-dimension-space-lg);
+  align-items: start;
+}
+
+.builder__controls {
+  min-width: 0;
+}
+
+/* The preview stays put while the controls scroll under it. That is the whole reason the
+   builder is two columns instead of a strip at the top: you can watch what a value does
+   while you are dragging it, and every control has somewhere to show up. */
+.builder__aside {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--t-dimension-space-sm);
+  min-width: 0;
+}
+
+.builder__stage {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 4 / 5;
+  max-height: 56vh;
+  border-radius: var(--t-dimension-radius-lg);
+  border: 1px solid var(--t-color-border-strong);
+  overflow: hidden;
+  background: var(--t-color-bg);
+  box-shadow: var(--t-shadow-elevated);
+}
+
+/* The accent bloom, exactly where the app puts it. */
+.builder__stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--t-effect-glow, 0);
+  background: radial-gradient(
+    60% 45% at 50% 18%,
+    color-mix(in srgb, var(--t-color-accent) 40%, transparent),
+    transparent 70%
+  );
+}
+
+/* The film grain, from the same generated SVG the app uses — no image request. Without it
+   the Grain slider had no visible effect anywhere in the builder. */
+.builder__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--t-effect-grain, 0);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.builder__note {
+  font-family: var(--t-fontFamily-mono);
+  font-size: 11.5px;
+  color: var(--t-color-text-subtle);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.builder__status {
+  margin: 0 0 var(--t-dimension-space-md);
+  font-size: 12px;
+}
+
+.builder__status[data-tone='ok'] {
+  color: var(--t-color-text-subtle);
+}
+
+/* Save stays reachable however far down the controls you are. */
+.builder__actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--t-dimension-space-md);
+  margin-top: var(--t-dimension-space-lg);
+  padding: var(--t-dimension-space-lg) 0 var(--t-dimension-space-sm);
+  background: linear-gradient(to top, var(--t-color-bg-elevated) 88%, transparent);
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: flex;
+  gap: var(--t-dimension-space-xs);
+  padding: var(--t-dimension-space-xs);
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-full);
+  margin-bottom: var(--t-dimension-space-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.segmented::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented__item {
+  flex: none;
+  padding: 7px var(--t-dimension-space-md);
+  border-radius: var(--t-dimension-radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--t-color-text);
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.segmented__item:hover {
+  background: var(--t-color-surface-hover);
+}
+
+.segmented__item[aria-selected='true'] {
+  background: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+/* --------------------------------------------------------------------------
+   Preview specimen
+
+   A miniature of the app, built from the app's own tokens — not a picture of it and not a
+   swatch strip. The real type scale, the real radii, the real shadows, the real chrome. It
+   is the only way to see that a `radiusLg` of 2px makes the timer look wrong, or that a
+   `blur` of 0 leaves the header flat against the motif.
+   -------------------------------------------------------------------------- */
+
+.specimen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: var(--t-color-text);
+  font-family: var(--t-fontFamily-body);
+}
+
+.specimen__chrome {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--t-dimension-space-sm);
+  padding: var(--t-dimension-space-sm) var(--t-dimension-space-md);
+  background: color-mix(in srgb, var(--t-color-bg) 82%, transparent);
+  backdrop-filter: blur(var(--t-effect-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--t-effect-blur, 12px));
+  border-bottom: 1px solid var(--t-color-border);
+}
+
+.specimen__brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--t-fontFamily-display);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.specimen__mark {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-accent);
+}
+
+.specimen__nav {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+}
+
+.specimen__nav-item {
+  padding: 4px 7px;
+  border-radius: var(--t-dimension-radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--t-color-text-muted);
+  white-space: nowrap;
+}
+
+.specimen__nav-item[data-current='true'] {
+  background: var(--t-color-surface-active);
+  color: var(--t-color-text);
+}
+
+.specimen__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--t-dimension-space-md);
+  padding: var(--t-dimension-space-md);
+}
+
+.specimen__phases {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-md);
+}
+
+.specimen__phase {
+  padding: 4px 9px;
+  border-radius: calc(var(--t-dimension-radius-md) - 3px);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--t-color-text-muted);
+  white-space: nowrap;
+}
+
+.specimen__phase[data-on='true'] {
+  background: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+.specimen__dial {
+  position: relative;
+  width: min(58%, 150px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.specimen__dial svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.specimen__ring-track {
+  stroke: var(--t-color-border);
+}
+
+.specimen__ring-value {
+  stroke: var(--t-color-accent);
+}
+
+.specimen__readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.specimen__digits {
+  font-family: var(--t-fontFamily-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.specimen__label {
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--t-color-text-subtle);
+}
+
+.specimen__controls {
+  display: flex;
+  gap: var(--t-dimension-space-sm);
+}
+
+.specimen__btn {
+  padding: 7px 15px;
+  border-radius: var(--t-dimension-radius-md);
+  border: 1px solid var(--t-color-border);
+  background: var(--t-color-surface);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: background var(--t-dur-base) var(--t-ease-out);
+}
+
+.specimen__btn[data-primary='true'] {
+  background: var(--t-color-accent);
+  border-color: var(--t-color-accent);
+  color: var(--t-color-accent-text);
+}
+
+.specimen__card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: var(--t-dimension-space-sm) var(--t-dimension-space-md);
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-md);
+  box-shadow: var(--t-shadow-card);
+}
+
+.specimen__card-title {
+  font-size: 11px;
+  color: var(--t-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specimen__track {
+  height: 3px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-border);
+  overflow: hidden;
+}
+
+.specimen__fill {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--t-color-accent);
+}
+
+@media (max-width: 900px) {
+  .builder {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Preview first on a narrow screen: it is the thing being judged. */
+  .builder__aside {
+    position: static;
+    order: -1;
+  }
+
+  .builder__stage {
+    aspect-ratio: 16 / 11;
+    max-height: none;
+  }
 }

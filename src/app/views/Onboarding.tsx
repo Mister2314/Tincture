@@ -12,9 +12,9 @@
 import { useState } from 'react';
 
 import { BUILT_IN_THEMES } from '../../theme/registry';
-import { applyTheme } from '../../theme/apply';
 import { Button } from '../../ui/primitives';
 import { useStore } from '../state/store';
+import { ThemeCard } from './ThemeCard';
 
 const STEPS = ['Welcome', 'Rhythm', 'Goal', 'Look', 'How it works'] as const;
 
@@ -138,41 +138,13 @@ export function Onboarding() {
             </p>
             <div className="theme-grid" style={{ marginBottom: 'var(--t-dimension-space-lg)' }}>
               {BUILT_IN_THEMES.map((theme) => (
-                <button
+                <ThemeCard
                   key={theme.id}
-                  type="button"
-                  className="theme-card"
-                  data-selected={settings.themeId === theme.id}
-                  aria-pressed={settings.themeId === theme.id}
-                  onClick={() => dispatch({ type: 'theme/select', id: theme.id })}
-                >
-                  <div
-                    className="theme-card__preview"
-                    ref={(node) => {
-                      if (node) applyTheme(theme, node);
-                    }}
-                  >
-                    <div className="theme-card__swatches" aria-hidden="true">
-                      {[
-                        theme.tokens.color.bg,
-                        theme.tokens.color.surface,
-                        theme.tokens.color.accent,
-                        theme.tokens.color.text,
-                      ].map((c, i) => (
-                        <span key={i} className="theme-card__swatch" style={{ background: c }} />
-                      ))}
-                    </div>
-                    <div className="theme-card__sample" aria-hidden="true">
-                      25:00
-                    </div>
-                  </div>
-                  <div className="theme-card__meta">
-                    <span className="theme-card__name">{theme.name}</span>
-                    {settings.themeId === theme.id ? (
-                      <span className="badge badge--accent">Picked</span>
-                    ) : null}
-                  </div>
-                </button>
+                  theme={theme}
+                  selected={settings.themeId === theme.id}
+                  selectedLabel="Picked"
+                  onSelect={() => dispatch({ type: 'theme/select', id: theme.id })}
+                />
               ))}
             </div>
           </>
@@ -206,7 +178,7 @@ export function Onboarding() {
                 <strong>Statistics</strong> shows today, your streak, and the last fourteen days.
               </li>
               <li>
-                <strong>Themes</strong> is where you change the look — four are built in, you can
+                <strong>Themes</strong> is where you change the look — nine are built in, you can
                 build your own without writing any code, and <strong>Community</strong> has themes
                 other people have contributed.
               </li>

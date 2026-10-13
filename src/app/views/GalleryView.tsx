@@ -17,10 +17,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { applyTheme } from '../../theme/apply';
 import { parseTheme, type ResolvedTheme } from '../../theme/validate';
 import { Button, EmptyState, ViewHeader } from '../../ui/primitives';
 import { useStore } from '../state/store';
+import { ThemeCard } from './ThemeCard';
 
 /** Where community themes live. Change these two to point at your own fork. */
 export const REPO_OWNER = 'Mister2314';
@@ -163,55 +163,21 @@ function GalleryCard({
   installed: boolean;
   onInstall: () => void;
 }) {
-  const previewRef = (node: HTMLDivElement | null) => {
-    if (node) applyTheme(theme, node);
-  };
-
   return (
-    <article className="theme-card" data-selected={installed}>
-      <div className="theme-card__preview" ref={previewRef}>
-        <div className="theme-card__swatches" aria-hidden="true">
-          {[
-            theme.tokens.color.bg,
-            theme.tokens.color.surface,
-            theme.tokens.color.accent,
-            theme.tokens.color.text,
-          ].map((c, i) => (
-            <span key={i} className="theme-card__swatch" style={{ background: c }} />
-          ))}
-        </div>
-        <div className="theme-card__sample" aria-hidden="true">
-          25:00
-        </div>
-      </div>
-
-      <div className="theme-card__meta">
-        <span>
-          <span className="theme-card__name">{theme.name}</span>
-          <br />
-          <span className="theme-card__author">by {theme.author}</span>
-        </span>
-        {installed ? (
+    <ThemeCard
+      theme={theme}
+      selected={installed}
+      action={
+        installed ? (
           <span className="badge">Added</span>
         ) : (
           <Button variant="primary" onClick={onInstall}>
             Add
           </Button>
-        )}
-      </div>
-
-      {theme.description ? (
-        <p
-          className="subtle"
-          style={{
-            padding: '0 var(--t-dimension-space-md) var(--t-dimension-space-md)',
-            fontSize: 12.5,
-          }}
-        >
-          {theme.description}
-        </p>
-      ) : null}
-    </article>
+        )
+      }
+      footer={theme.description ? <p className="theme-card__desc">{theme.description}</p> : null}
+    />
   );
 }
 

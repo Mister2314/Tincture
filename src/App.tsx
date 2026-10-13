@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
-import { LazyMotion, domMax } from 'motion/react';
+import { useEffect, useMemo, type ComponentType, type CSSProperties } from 'react';
+import { LazyMotion, MotionConfig, domMax } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 
 import { Ambience } from './app/ambience/Ambience';
+import { EASE_IN, EASE_OUT } from './app/motion';
 import { ThemeRoot } from './app/ThemeRoot';
 import { useStore, type View } from './app/state/store';
+import { findTheme } from './theme/registry';
 import { GalleryView } from './app/views/GalleryView';
 import { Onboarding } from './app/views/Onboarding';
 import { SettingsView } from './app/views/SettingsView';
@@ -21,6 +24,15 @@ const NAV: { view: View; label: string }[] = [
   { view: 'gallery', label: 'Community' },
   { view: 'settings', label: 'Settings' },
 ];
+
+const VIEWS: Record<View, ComponentType> = {
+  timer: TimerView,
+  tasks: TasksView,
+  stats: StatsView,
+  themes: ThemesView,
+  gallery: GalleryView,
+  settings: SettingsView,
+};
 
 function Shell() {
   const { state, dispatch } = useStore();
@@ -44,6 +56,8 @@ function Shell() {
   }, [dispatch]);
 
   if (!settings.onboarded) return <Onboarding />;
+
+  const Current = VIEWS[view];
 
   return (
     <div className="app">
@@ -69,12 +83,27 @@ function Shell() {
       </header>
 
       <main className="main">
-        {view === 'timer' && <TimerView />}
-        {view === 'tasks' && <TasksView />}
-        {view === 'stats' && <StatsView />}
-        {view === 'themes' && <ThemesView />}
-        {view === 'gallery' && <GalleryView />}
-        {view === 'settings' && <SettingsView />}
+        {/*
+          One transition for every view, on purpose. A consistent rhythm is what makes an
+          app feel built rather than assembled; a different entrance per page reads as four
+          people having decorated four rooms.
+
+          `mode="wait"` because the views are different heights — cross-fading them in place
+          would make the page jump under the cursor. The exit is deliberately shorter than
+          the entrance: leaving should feel instant, arriving should feel deliberate.
+        */}
+        <AnimatePresence mode="wait" initial={false}>
+          <m.div
+            key={view}
+            className="view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.14, ease: EASE_IN } }}
+            transition={{ duration: 0.24, ease: EASE_OUT }}
+          >
+            <Current />
+          </m.div>
+        </AnimatePresence>
       </main>
     </div>
   );
@@ -92,20 +121,47 @@ export default function App() {
       something, and `layout` animations live in `domMax`. Without it the rows teleport.
     */
     <LazyMotion features={domMax} strict>
+      <MotionRoot />
+    </LazyMotion>
+  );
+}
+
+/**
+ * Wires the app's two motion switches into `motion`, so nothing downstream has to remember
+ * them.
+ *
+ * - `MotionConfig reducedMotion` is the **user's** switch: `prefers-reduced-motion`, or the
+ *   app's own setting, disables transform and layout animation while keeping opacity. Motion
+ *   that is removed entirely is motion that leaves the user wondering what happened.
+ * - `data-motion` is the **theme's** switch. `effects.motion` scales every duration the same
+ *   way it scales the canvas motifs — a theme that asks for 0.5 runs half speed, and 0 stops
+ *   it. The attribute lets the stylesheet's own animations honour it too.
+ */
+function MotionRoot() {
+  const { state } = useStore();
+  const theme = useMemo(
+    () => findTheme(state.settings.themeId, state.customThemes),
+    [state.settings.themeId, state.customThemes],
+  );
+
+  const themeMotion = theme.effects?.motion ?? 1;
+  const reduced = state.settings.reduceMotion;
+  const scale = reduced || themeMotion === 0 ? 0 : themeMotion;
+  const mode = scale === 0 ? 'off' : scale < 1 ? 'slow' : scale > 1 ? 'fast' : 'on';
+
+  return (
+    <MotionConfig reducedMotion={reduced ? 'always' : 'user'}>
       <ToastProvider>
-        {/*
-          One stacking context for the whole app. That is what lets the ambience sit at a
-          negative z-index — behind the content, above the page background — instead of
-          needing a positive one and covering everything. Without it a `z-index: 0` fixed
-          layer paints on top of in-flow content, and the timer disappears behind its own
-          background.
-        */}
-        <div className="app-root">
+        <div
+          className="app-root"
+          data-motion={mode}
+          style={{ '--motion-scale': scale } as CSSProperties}
+        >
           <ThemeRoot />
           <Ambience />
           <Shell />
         </div>
       </ToastProvider>
-    </LazyMotion>
+    </MotionConfig>
   );
 }

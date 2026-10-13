@@ -18,7 +18,12 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
+  type SelectHTMLAttributes,
 } from 'react';
+
+import { AnimatePresence, m } from 'motion/react';
+
+import { EASE_OUT } from '../app/motion';
 
 /* ------------------------------------------------------------------ *
  * Button
@@ -73,6 +78,32 @@ export function Field({
         <span className="field__hint">{hint}</span>
       ) : null}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Select
+ * ------------------------------------------------------------------ */
+
+/**
+ * A `<select>` with a chevron we drew.
+ *
+ * The native arrow cannot be styled, and it cannot be recoloured either — a `background-image`
+ * chevron would need a hard-coded colour, which would be wrong in half the themes. Drawing it
+ * on a wrapper's pseudo-element from `border` + `transform` means it is two token-driven
+ * lines, and it inherits the theme like everything else.
+ */
+export function Select({
+  className = '',
+  children,
+  ...rest
+}: SelectHTMLAttributes<HTMLSelectElement> & { children: ReactNode }) {
+  return (
+    <span className="select-wrap">
+      <select className={`select ${className}`.trim()} {...rest}>
+        {children}
+      </select>
+    </span>
   );
 }
 
@@ -166,11 +197,14 @@ export function Dialog({
   open,
   onClose,
   title,
+  size = 'md',
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** `wide` is for dialogs that are a workspace rather than a question — the theme builder. */
+  size?: 'md' | 'wide';
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -189,27 +223,56 @@ export function Dialog({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  /*
+    The dialog stays mounted through its exit animation, which is why this is
+    `AnimatePresence` rather than an early `return null`. A modal that vanishes instantly
+    reads as a page reload; one that shrinks away reads as a thing you closed.
 
+    The body is its own scroll container. That is not a detail: the theme builder needs a
+    `position: sticky` preview, and a sticky element can only stick inside the box that
+    scrolls. Scrolling the dialog itself would leave the preview with nowhere to stick.
+  */
   return (
-    <div
-      className="dialog-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
-        ref={ref}
-      >
-        <h2 className="dialog__title">{title}</h2>
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {open ? (
+        <m.div
+          className="dialog-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.16, ease: EASE_OUT }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <m.div
+            className={size === 'wide' ? 'dialog dialog--wide' : 'dialog'}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            tabIndex={-1}
+            ref={ref}
+            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.99 }}
+            transition={{ duration: 0.26, ease: EASE_OUT }}
+          >
+            <div className="dialog__head">
+              <h2 className="dialog__title">{title}</h2>
+              <button
+                type="button"
+                className="dialog__close"
+                aria-label="Close"
+                onClick={onClose}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="dialog__body">{children}</div>
+          </m.div>
+        </m.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
 

@@ -1,9 +1,11 @@
 /**
- * The ambience layer — one canvas behind the app.
+ * The ambience layer — one canvas, and every decision the individual renderers are not
+ * allowed to make.
  *
- * This component owns every decision the individual renderers are not allowed to make:
- * when to run, how big the canvas is, and what the parameters are. A renderer just paints
- * a frame; the policy lives here, in one place, so it cannot drift per motif.
+ * It is a *layer*, not an app feature: it takes a resolved theme and paints that theme's
+ * motif inside whatever box it is given. That is what lets the theme builder put the real
+ * motif inside its preview panel — the same component, the same renderers, the same policy
+ * — instead of a hand-drawn approximation that drifts from the real thing.
  *
  * The gates, in order:
  *
@@ -16,16 +18,17 @@
  * - **A phase-driven motif parks while the timer is idle**, and wakes when it starts.
  * - **`effects.ambience === 0` switches the motif off** without changing `motif`.
  *
- * The canvas is `position: fixed` and `pointer-events: none`, so it cannot intercept a
- * click or move the layout. Everything it draws comes from the resolved theme, which means
- * a community theme moves the ambience too — the motif is a theme decision, not an app one.
+ * The canvas is `position: fixed` in the app and `position: absolute` in a preview panel,
+ * and it is sized from its own container either way — so there is one sizing path, not two.
+ * It never takes a pointer event and never affects layout.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Motif } from '../../theme/schema';
 import { findTheme } from '../../theme/registry';
-import { progress, type Phase } from '../timer/engine';
+import type { ResolvedTheme } from '../../theme/validate';
+import { progress as timerProgress, type Phase } from '../timer/engine';
 import { useStore } from '../state/store';
 import { rendererFor } from './renderers';
 import {
@@ -42,11 +45,28 @@ const PHASE_DRIVEN: ReadonlySet<Motif> = new Set<Motif>(['hearth']);
 /** The one bundled image. Loaded only when `van-gogh` is the active theme. */
 const ART_SRC = `${import.meta.env.BASE_URL}art/starry-night.jpg`;
 
-export function Ambience() {
-  const { state, now } = useStore();
-  const id = state.previewThemeId ?? state.settings.themeId;
-  const theme = useMemo(() => findTheme(id, state.customThemes), [id, state.customThemes]);
+export type AmbienceLayerProps = {
+  theme: ResolvedTheme;
+  /** `fixed` fills the viewport (the app). `fill` fills the nearest positioned ancestor. */
+  mode?: 'fixed' | 'fill';
+  className?: string;
+  /** Timer state, for phase-driven motifs. Omitted outside the app shell. */
+  phase?: Phase;
+  running?: boolean;
+  progress?: number;
+  /** The app's own reduce-motion setting. */
+  reduceMotion?: boolean;
+};
 
+export function AmbienceLayer({
+  theme,
+  mode = 'fill',
+  className = '',
+  phase = 'focus',
+  running = false,
+  progress = 0,
+  reduceMotion = false,
+}: AmbienceLayerProps) {
   const motif: Motif = theme.motif ?? 'none';
   const kind = kindOf(motif);
   const ambience = theme.effects?.ambience ?? 0;
@@ -67,9 +87,9 @@ export function Ambience() {
 
   /** Latest timer state, read by the loop without restarting it. */
   const live = useRef<{ phase: Phase; running: boolean; progress: number }>({
-    phase: 'focus',
-    running: false,
-    progress: 0,
+    phase,
+    running,
+    progress,
   });
 
   const [systemReduced, setSystemReduced] = useState(false);
@@ -82,13 +102,13 @@ export function Ambience() {
     return () => query.removeEventListener('change', update);
   }, []);
 
-  const reduced = state.settings.reduceMotion || systemReduced;
+  const reduced = reduceMotion || systemReduced;
 
   useEffect(() => {
-    live.current.phase = state.timer.phase;
-    live.current.running = state.timer.status === 'running';
-    live.current.progress = progress(state.timer, now);
-  });
+    live.current.phase = phase;
+    live.current.running = running;
+    live.current.progress = progress;
+  }, [phase, running, progress]);
 
   // The motif is a property of the theme, so the container always states it — the CSS-only
   // motifs and the art layer key off this attribute, and it survives a switch to `none`.
@@ -104,7 +124,7 @@ export function Ambience() {
   // effect when the timer starts, so it is woken explicitly.
   useEffect(() => {
     wakeRef.current?.();
-  }, [state.timer.status, reduced]);
+  }, [running, reduced]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -130,22 +150,36 @@ export function Ambience() {
     let last = performance.now();
     const started = last;
 
-    const buildEnv = (): AmbienceEnv => {
+    /**
+     * Size from the container, not the window.
+     *
+     * The app's layer is `position: fixed; inset: 0`, so its container rect *is* the
+     * viewport; a preview panel's layer is `position: absolute` inside a small box. One
+     * measurement path covers both, which is what makes the preview honest.
+     */
+    const measure = () => {
+      const element = containerRef.current;
+      const rect = element?.getBoundingClientRect();
+      const width = rect && rect.width > 1 ? rect.width : window.innerWidth;
+      const height = rect && rect.height > 1 ? rect.height : window.innerHeight;
       // Capped at 2: a 3× buffer on a phone is four times the fill rate for a background
       // nobody is looking at directly.
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
       return {
-        width: Math.max(1, Math.round(window.innerWidth)),
-        height: Math.max(1, Math.round(window.innerHeight)),
-        dpr,
-        palette: paletteOf(theme),
-        ambience,
-        density,
-        scale,
-        seed,
-        image,
+        width: Math.max(1, Math.round(width)),
+        height: Math.max(1, Math.round(height)),
+        dpr: Math.min(2, window.devicePixelRatio || 1),
       };
     };
+
+    const buildEnv = (): AmbienceEnv => ({
+      ...measure(),
+      palette: paletteOf(theme),
+      ambience,
+      density,
+      scale,
+      seed,
+      image,
+    });
 
     const sizeCanvas = (): AmbienceEnv => {
       const env = buildEnv();
@@ -206,19 +240,26 @@ export function Ambience() {
     };
 
     let resizeTimer = 0;
+    const remeasure = () => {
+      if (disposed) return;
+      env = sizeCanvas();
+      instance.resize(env);
+      last = performance.now();
+      wake();
+    };
     const onResize = () => {
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        if (disposed) return;
-        env = sizeCanvas();
-        instance.resize(env);
-        last = performance.now();
-        wake();
-      }, 140);
+      resizeTimer = window.setTimeout(remeasure, 140);
     };
 
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('resize', onResize);
+
+    // The preview panel changes size without a window resize (the dialog animates in, a
+    // column reflows), so the container is watched directly.
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
+    if (observer && containerRef.current) observer.observe(containerRef.current);
 
     if (motif === 'starry-flow') {
       // Lazy by construction: the request only exists while this theme is selected, so a
@@ -245,28 +286,57 @@ export function Ambience() {
       if (raf) cancelAnimationFrame(raf);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('resize', onResize);
+      observer?.disconnect();
       instance.dispose();
       if (wakeRef.current === wake) wakeRef.current = null;
       clear();
     };
     // Rebuilt only when a theme decision changes — never on a timer tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, motif, active, ambience, density, scale, seed, motion, reduced]);
 
   return (
-    <div className="ambience" ref={containerRef} data-motif={motif} aria-hidden="true">
+    <div
+      className={['ambience', `ambience--${mode}`, className].filter(Boolean).join(' ')}
+      ref={containerRef}
+      data-motif={motif}
+      aria-hidden="true"
+    >
       <div className="ambience__art" ref={artRef} />
       <canvas className="ambience__canvas" ref={canvasRef} />
       {motif === 'specimen' ? <SpecimenArt /> : null}
       {/*
         The contrast floor. The motif is allowed to be characterful; the timer is not
         allowed to become unreadable. This sits above every motif layer and below the
-        content, and washes the theme's own background over the centre of the viewport,
-        where the readout lives. `--t-color-bg` rather than a fixed colour, so it is the
-        theme's paper that protects the theme's text.
+        content, and washes the theme's own background over the centre of the layer, where
+        the readout lives. `--t-color-bg` rather than a fixed colour, so it is the theme's
+        paper that protects the theme's text.
       */}
       <div className="ambience__scrim" />
     </div>
+  );
+}
+
+/**
+ * The app-level ambience: reads the active theme and fills the viewport.
+ *
+ * Kept separate from the layer so the layer stays a pure function of its props — which is
+ * the whole reason the theme builder can reuse it.
+ */
+export function Ambience() {
+  const { state, now } = useStore();
+  const id = state.previewThemeId ?? state.settings.themeId;
+  const theme = useMemo(() => findTheme(id, state.customThemes), [id, state.customThemes]);
+  const progress = useMemo(() => timerProgress(state.timer, now), [state.timer, now]);
+
+  return (
+    <AmbienceLayer
+      theme={theme}
+      mode="fixed"
+      phase={state.timer.phase}
+      running={state.timer.status === 'running'}
+      progress={progress}
+      reduceMotion={state.settings.reduceMotion}
+    />
   );
 }
 
@@ -276,8 +346,6 @@ export function Ambience() {
  * Inline SVG rather than a `url()` in the stylesheet, for one reason: a data-URI cannot
  * read the theme's custom properties, so the plant would be the same green in every theme.
  * Drawn here it is painted from the theme's own tokens, exactly like every canvas motif.
- *
- * Not exported, so the file still has a single component export.
  */
 function SpecimenArt() {
   return (
