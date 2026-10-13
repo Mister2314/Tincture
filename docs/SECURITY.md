@@ -98,8 +98,16 @@ an exception — it arrives from `localStorage`, a URL, or a downloaded file.
 default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
 img-src 'self' data:; font-src 'self';
 connect-src 'self' https://api.github.com https://raw.githubusercontent.com;
-object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none';
+frame-ancestors 'none'; upgrade-insecure-requests
 ```
+
+The same policy is written in two places: a `<meta http-equiv>` in `index.html` and a real
+header in `vercel.json`. The two had drifted — `index.html` was missing `frame-ancestors`
+and `upgrade-insecure-requests`, and `vercel.json` was missing `frame-src` — so the policy
+in force in production was not the one the source described. They are now identical except
+for one directive: **`frame-ancestors` is ignored in a `<meta>` tag**, so it appears only in
+the header, where `X-Frame-Options: DENY` covers the same ground for older browsers.
 
 The layer under everything else. Even if a value escaped layer 2, there is no origin for it to
 call: `default-src 'self'` means an unexpected fetch fails at the browser, not at the schema.

@@ -306,10 +306,17 @@ export function reviveTimer(raw: unknown, _config: TimerConfig, now = Date.now()
         : 0,
   };
 
+  // Order matters, and getting it wrong is invisible. A "paused" timer with no pause
+  // timestamp never actually stopped, so it is repaired back to running — and that repair
+  // has to happen *before* the anchor check below, not after. The other order produced
+  // `running` with `startedAt: null`: a timer that can never count down, which then gets
+  // downgraded to idle on the next load. That is the exact shape of the "a running timer
+  // was found idle" report, and it is reachable from user-writable storage.
+  if (state.status === 'paused' && state.pausedAt === null) state.status = 'running';
+
   // A "running" timer with no anchor cannot be measured; treat it as idle rather than
   // guessing a start time.
   if (state.status === 'running' && state.startedAt === null) state.status = 'idle';
-  if (state.status === 'paused' && state.pausedAt === null) state.status = 'running';
 
   // An anchor in the future means the system clock moved backwards. Restart the phase.
   if (state.startedAt !== null && state.startedAt > now + 1000) {

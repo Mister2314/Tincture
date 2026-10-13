@@ -62,8 +62,6 @@ export type State = {
   activeTaskId: string | null;
   customThemes: ResolvedTheme[];
   view: View;
-  /** Id of the theme being previewed in the theme view, if any. */
-  previewThemeId: string | null;
 };
 
 export type Action =
@@ -83,7 +81,6 @@ export type Action =
   | { type: 'session/record'; session: Session }
   | { type: 'settings/patch'; patch: Partial<Settings> }
   | { type: 'theme/select'; id: string }
-  | { type: 'theme/preview'; id: string | null }
   | { type: 'theme/add'; theme: ResolvedTheme }
   | { type: 'theme/remove'; id: string }
   | { type: 'view/set'; view: View }
@@ -103,7 +100,34 @@ function initialState(now = Date.now()): State {
     activeTaskId: loaded.activeTaskId,
     customThemes: resolveCustomThemes(loaded.customThemes),
     view: 'timer',
-    previewThemeId: null,
+  };
+}
+
+/**
+ * A genuinely empty state — **no read from storage**.
+ *
+ * `initialState` is the *boot* state: it loads what was persisted. "Erase everything" needs
+ * the opposite, and using `initialState` for it silently reloaded the very data it was
+ * meant to delete, so the reset looked like it had worked and the tasks were still there on
+ * the next render. `clearState()` removes the key as well; this is the in-memory half.
+ */
+function emptyState(): State {
+  return {
+    settings: { ...DEFAULT_SETTINGS },
+    timer: {
+      status: 'idle',
+      phase: 'focus',
+      startedAt: null,
+      durationMs: DEFAULT_SETTINGS.config.focusMs,
+      pausedTotalMs: 0,
+      pausedAt: null,
+      completedFocus: 0,
+    },
+    tasks: [],
+    sessions: [],
+    activeTaskId: null,
+    customThemes: [],
+    view: 'timer',
   };
 }
 
@@ -197,10 +221,7 @@ export function reducer(state: State, action: Action, now = Date.now()): State {
       return { ...state, settings: { ...state.settings, ...action.patch } };
 
     case 'theme/select':
-      return { ...state, settings: { ...state.settings, themeId: action.id }, previewThemeId: null };
-
-    case 'theme/preview':
-      return { ...state, previewThemeId: action.id };
+      return { ...state, settings: { ...state.settings, themeId: action.id } };
 
     case 'theme/add': {
       const customThemes = [
@@ -224,7 +245,7 @@ export function reducer(state: State, action: Action, now = Date.now()): State {
       return { ...state, view: action.view };
 
     case 'state/reset':
-      return { ...initialState(now), settings: { ...DEFAULT_SETTINGS, onboarded: false } };
+      return { ...emptyState(), settings: { ...DEFAULT_SETTINGS, onboarded: false } };
   }
 }
 

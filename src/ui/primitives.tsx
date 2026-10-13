@@ -16,7 +16,6 @@ import {
   useRef,
   useState,
   type ButtonHTMLAttributes,
-  type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
@@ -147,51 +146,22 @@ export function Switch({
 }
 
 /* ------------------------------------------------------------------ *
- * Number input with a suffix
-   ------------------------------------------------------------------ */
-
-export function NumberInput({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  suffix,
-  ...rest
-}: {
-  value: number;
-  onChange: (next: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  suffix?: string;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'min' | 'max' | 'step'>) {
-  const id = useId();
-  return (
-    <div className="row">
-      <input
-        id={id}
-        className="input"
-        type="number"
-        value={value}
-        min={min}
-        max={max}
-        step={step}
-        onChange={(e) => {
-          const next = Number(e.target.value);
-          if (!Number.isFinite(next)) return;
-          onChange(Math.min(max, Math.max(min, next)));
-        }}
-        {...rest}
-      />
-      {suffix ? <span className="muted">{suffix}</span> : null}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
  * Dialog
  * ------------------------------------------------------------------ */
+
+/**
+ * The focusable set, in document order. Kept deliberately small: this is only used to
+ * decide where Tab wraps, so a missing exotic selector degrades to "Tab escapes", which is
+ * what happened before the trap existed.
+ */
+const FOCUSABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 export function Dialog({
   open,
@@ -211,14 +181,69 @@ export function Dialog({
 
   useEffect(() => {
     if (!open) return;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const node = ref.current;
+      if (!node) return;
+      const items = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (el) => el.offsetParent !== null || el === document.activeElement,
+      );
+      if (items.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const inside = active ? node.contains(active) : false;
+
+      if (e.shiftKey) {
+        if (!inside || active === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!inside || active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener('keydown', onKey);
+
+    /*
+      `aria-modal="true"` is a promise that nothing outside the dialog is reachable, and a
+      Tab trap alone does not keep it — the content behind is still in the accessibility
+      tree and still clickable. So every sibling along the ancestor chain, from the dialog
+      out to `<body>`, is marked `inert` for as long as the dialog is open. A dialog cannot
+      be portalled to `<body>` here without restructuring how views mount, and `inert` on
+      the siblings gets the same result with none of that.
+    */
+    const inerted: HTMLElement[] = [];
+    const node = ref.current;
+    let cursor: HTMLElement | null = node?.parentElement ?? null;
+    while (node && cursor && cursor !== document.body) {
+      for (const sibling of Array.from(cursor.children)) {
+        if (sibling === node || sibling.contains(node)) continue;
+        if (sibling instanceof HTMLElement && !sibling.hasAttribute('inert')) {
+          sibling.setAttribute('inert', '');
+          inerted.push(sibling);
+        }
+      }
+      cursor = cursor.parentElement;
+    }
+
     const previous = document.activeElement as HTMLElement | null;
     ref.current?.focus();
+
     return () => {
       document.removeEventListener('keydown', onKey);
+      for (const el of inerted) el.removeAttribute('inert');
       previous?.focus?.();
     };
   }, [open, onClose]);
@@ -312,9 +337,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
+      {/*
+        One live region, not two. The container announces; the toasts inside it are plain
+        nodes. Giving each toast `role="status"` as well nested a live region inside a live
+        region, which reads the message twice in most screen readers.
+      */}
       <div className="toasts" aria-live="polite" aria-atomic="false">
         {toasts.map((t) => (
-          <div key={t.id} className="toast" data-tone={t.tone} role="status">
+          <div key={t.id} className="toast" data-tone={t.tone}>
             {t.message}
           </div>
         ))}

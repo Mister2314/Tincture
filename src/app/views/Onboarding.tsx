@@ -178,9 +178,9 @@ export function Onboarding() {
                 <strong>Statistics</strong> shows today, your streak, and the last fourteen days.
               </li>
               <li>
-                <strong>Themes</strong> is where you change the look — nine are built in, you can
-                build your own without writing any code, and <strong>Community</strong> has themes
-                other people have contributed.
+                <strong>Themes</strong> is where you change the look — {BUILT_IN_THEMES.length} are
+                built in, you can build your own without writing any code, and{' '}
+                <strong>Community</strong> has themes other people have contributed.
               </li>
               <li>
                 Everything lives in this browser. Settings → Data exports it or erases it.

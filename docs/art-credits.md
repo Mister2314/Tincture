@@ -45,9 +45,9 @@ Six families, all **SIL Open Font License 1.1**, fetched from the Google Fonts C
 | Manrope | Default body face | `manrope-0.woff2` |
 | Instrument Serif | Default display face (roman + italic) | `instrument-serif-0.woff2`, `instrument-serif-1.woff2` |
 | JetBrains Mono | Every number that ticks | `jetbrains-mono-0.woff2` |
-| Fraunces | Van Gogh, Herbarium — literary and soft-serifed | `fraunces-0.woff2` |
-| Bricolage Grotesque | Sakura Tree — eclectic display | `bricolage-grotesque-0.woff2` |
-| Space Grotesk | Terminal Amber — technical and wide | `space-grotesk-0.woff2` |
+| Fraunces | Van Gogh, Herbarium, Sakura Tree — literary and soft-serifed | `fraunces-0.woff2` |
+| Bricolage Grotesque | Neon Rain — eclectic display | `bricolage-grotesque-0.woff2` |
+| Space Grotesk | Terminal Amber, Frost — technical and wide | `space-grotesk-0.woff2` |
 
 They are bundled rather than linked for the same reason the artwork is: `FONT_FAMILIES` is a
 closed list, and a theme can only name a font the app already ships. A remote font would turn

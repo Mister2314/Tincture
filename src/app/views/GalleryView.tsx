@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { parseTheme, type ResolvedTheme } from '../../theme/validate';
-import { Button, EmptyState, ViewHeader } from '../../ui/primitives';
+import { Button, EmptyState, useToast, ViewHeader } from '../../ui/primitives';
 import { useStore } from '../state/store';
 import { ThemeCard } from './ThemeCard';
 
@@ -187,28 +187,34 @@ function GalleryCard({
 
 export function GalleryView() {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const [gallery, setGallery] = useState<GalleryState>({ status: 'idle' });
 
-  const load = useCallback(async (force: boolean) => {
-    const cached = readCache();
-    if (!force && cached.length > 0) {
-      setGallery({ status: 'ready', themes: cached, source: 'cache' });
-    } else {
-      setGallery({ status: 'loading' });
-    }
-
-    try {
-      const themes = await fetchThemes();
-      writeCache(themes);
-      setGallery({ status: 'ready', themes, source: 'network' });
-    } catch (error) {
-      if (cached.length > 0) {
+  const load = useCallback(
+    async (force: boolean) => {
+      const cached = readCache();
+      if (!force && cached.length > 0) {
         setGallery({ status: 'ready', themes: cached, source: 'cache' });
       } else {
-        setGallery({ status: 'error', message: describeFailure(error) });
+        setGallery({ status: 'loading' });
       }
-    }
-  }, []);
+
+      try {
+        const themes = await fetchThemes();
+        writeCache(themes);
+        setGallery({ status: 'ready', themes, source: 'network' });
+      } catch (error) {
+        if (cached.length > 0) {
+          // A silent failure on a warm cache looked like the button doing nothing.
+          setGallery({ status: 'ready', themes: cached, source: 'cache' });
+          toast.info('Could not reach GitHub — still showing the cached list.');
+        } else {
+          setGallery({ status: 'error', message: describeFailure(error) });
+        }
+      }
+    },
+    [toast],
+  );
 
   useEffect(() => {
     void load(false);
@@ -256,7 +262,10 @@ export function GalleryView() {
                 key={theme.id}
                 theme={theme}
                 installed={installedIds.has(theme.id)}
-                onInstall={() => dispatch({ type: 'theme/add', theme })}
+                onInstall={() => {
+                  dispatch({ type: 'theme/add', theme });
+                  toast.success(`“${theme.name}” added to your themes.`);
+                }}
               />
             ))}
           </div>

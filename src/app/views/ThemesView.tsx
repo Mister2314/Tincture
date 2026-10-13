@@ -10,17 +10,13 @@
  * Both are rendered from *resolved* themes, so a card can only ever show something that
  * already passed validation. The preview is the real thing: each card applies the theme to
  * its own node with the same `applyTheme` the app uses, so what the card shows is what the
- * app will look like.
- *
- * The card does **not** render the theme's motif. Nine live canvases in a grid is nine
- * animation loops for a picture 200px wide; the motif is named instead, and the theme
- * builder is where you see it move.
+ * app will look like — including the theme's motif, drawn as one static frame.
  */
 
 import { useMemo, useState } from 'react';
 
 import { allThemes, isBuiltIn } from '../../theme/registry';
-import { parseThemeJson } from '../../theme/validate';
+import { parseThemeJson, type ResolvedTheme } from '../../theme/validate';
 import { Button, Dialog, Field, useToast, ViewHeader } from '../../ui/primitives';
 import { FileDrop } from '../../ui/FileDrop';
 import { useStore } from '../state/store';
@@ -46,6 +42,7 @@ export function ThemesView() {
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [pendingDelete, setPendingDelete] = useState<ResolvedTheme | null>(null);
 
   const themes = useMemo(() => allThemes(state.customThemes), [state.customThemes]);
 
@@ -146,12 +143,7 @@ export function ThemesView() {
                   selected={theme.id === state.settings.themeId}
                   onSelect={() => dispatch({ type: 'theme/select', id: theme.id })}
                   onDelete={
-                    isBuiltIn(theme.id)
-                      ? undefined
-                      : () => {
-                          dispatch({ type: 'theme/remove', id: theme.id });
-                          toast.info(`“${theme.name}” deleted.`);
-                        }
+                    isBuiltIn(theme.id) ? undefined : () => setPendingDelete(theme)
                   }
                 />
               ))}
@@ -161,6 +153,38 @@ export function ThemesView() {
       )}
 
       <ThemeBuilder open={builderOpen} onClose={() => setBuilderOpen(false)} />
+
+      {/*
+        Deleting a theme used to be a single unconfirmed tap on a 24px ✕ — on a product
+        whose whole point is that a theme is something you made. A built-in cannot be
+        deleted at all; a custom one gets the same dialog treatment as "Erase everything".
+      */}
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title={pendingDelete ? `Delete “${pendingDelete.name}”?` : 'Delete theme?'}
+      >
+        <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+          This removes the theme from this browser. If you did not export it, it is gone.
+        </p>
+        <div className="row row--between" style={{ marginTop: 'var(--t-dimension-space-lg)' }}>
+          <Button variant="ghost" onClick={() => setPendingDelete(null)}>
+            Keep it
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (pendingDelete) {
+                dispatch({ type: 'theme/remove', id: pendingDelete.id });
+                toast.info(`“${pendingDelete.name}” deleted.`);
+              }
+              setPendingDelete(null);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      </Dialog>
 
       <Dialog open={importOpen} onClose={() => setImportOpen(false)} title="Import a theme">
         <div className="stack">

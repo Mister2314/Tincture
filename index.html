@@ -15,10 +15,16 @@
 
       connect-src is the one deliberate opening, and it is limited to GitHub, because the
       community gallery reads themes from the public repository.
+
+      This string is the same policy as the `Content-Security-Policy` header in
+      `vercel.json`, directive for directive — the two had drifted, which means the policy
+      actually enforced in production was not the one written here. `frame-ancestors` is the
+      single exception: browsers ignore it in a `<meta>` tag, so it lives only in the header,
+      alongside the `X-Frame-Options: DENY` that covers the same ground.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; upgrade-insecure-requests"
     />
 
     <meta name="color-scheme" content="dark light" />

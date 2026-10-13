@@ -15,6 +15,7 @@ import {
   type Phase,
 } from '../timer/engine';
 import { useStore } from '../state/store';
+import { playPhaseTone } from '../sound';
 import { Button } from '../../ui/primitives';
 
 const PHASE_LABEL: Record<Phase, string> = {
@@ -76,6 +77,14 @@ export function TimerView() {
       /* a notification that fails must never break the timer */
     }
   }, [finished, settings.notificationsEnabled, timer.phase]);
+
+  // A short synthesised tone when a phase ends, if the user asked for it. Settings promises
+  // this; it used to be a switch wired to nothing.
+  useEffect(() => {
+    if (!finished) return;
+    if (!settings.soundEnabled) return;
+    playPhaseTone(timer.phase === 'focus' ? 'focus' : 'break');
+  }, [finished, settings.soundEnabled, timer.phase]);
 
   // Keep the tab title useful when the app is in the background.
   useEffect(() => {

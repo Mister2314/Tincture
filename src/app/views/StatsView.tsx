@@ -57,12 +57,20 @@ export function StatsView() {
           />
         ) : (
           <>
-            <div className="chart" role="img" aria-label="Focus sessions per day, last 14 days">
+            {/*
+              Each bar carries its own name. The container used to be the only thing with an
+              accessible label, and it said "Focus sessions per day, last 14 days" — no
+              numbers. So the chart reached neither a screen reader nor a touch user, since
+              a `title` needs a pointer to appear.
+            */}
+            <div className="chart" role="group" aria-label="Focus sessions per day, last 14 days">
               {stats.recent.map((day, index) => (
                 <div
                   key={day.date}
                   className="chart__bar"
                   data-today={index === stats.recent.length - 1}
+                  role="img"
+                  aria-label={`${day.date}: ${day.focusSessions} focus session${day.focusSessions === 1 ? '' : 's'}`}
                   style={{ height: `${Math.max(2, (day.focusSessions / peak) * 100)}%` }}
                   title={`${day.date}: ${day.focusSessions} session${day.focusSessions === 1 ? '' : 's'}`}
                 />

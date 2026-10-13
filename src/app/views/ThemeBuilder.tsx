@@ -220,7 +220,7 @@ function PreviewSpecimen() {
   const ring = 2 * Math.PI * 46;
 
   return (
-    <div className="specimen">
+    <div className="specimen" aria-hidden="true">
       <div className="specimen__chrome">
         <span className="specimen__brand">
           <span className="specimen__mark" />
@@ -319,6 +319,33 @@ export function ThemeBuilder({ open, onClose }: { open: boolean; onClose: () => 
   const toast = useToast();
   const [draft, setDraft] = useState<Draft>(() => blankDraft());
   const [tab, setTab] = useState<TabKey>('colour');
+
+  /*
+    The JSON tab keeps its own text.
+
+    The textarea used to be controlled by `JSON.stringify(draft)`, and `onChange` only
+    accepted a value that parsed as a whole document. So the keystroke that made the JSON
+    invalid was thrown away, the DOM reverted, and the status line — "Valid — this theme can
+    be saved" — went on describing a *different* document from the one on screen. The text
+    is the source of truth while the tab is open; the draft follows it whenever it parses.
+  */
+  const [jsonText, setJsonText] = useState('');
+  const wasJsonTab = useRef(false);
+
+  useEffect(() => {
+    if (tab === 'json' && !wasJsonTab.current) setJsonText(JSON.stringify(draft, null, 2));
+    wasJsonTab.current = tab === 'json';
+  }, [tab, draft]);
+
+  const jsonParses = useMemo(() => {
+    if (!jsonText.trim()) return true;
+    try {
+      JSON.parse(jsonText);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [jsonText]);
 
   const parsed = useMemo(() => parseTheme(draft), [draft]);
   const issues = parsed.ok ? [] : parsed.issues;
@@ -615,18 +642,24 @@ export function ThemeBuilder({ open, onClose }: { open: boolean; onClose: () => 
           {tab === 'json' && (
             <Field
               label="Theme document"
-              hint="This is exactly what gets saved and shared. Edit it directly if you prefer."
+              hint="This is exactly what gets saved and shared. Edit it directly if you prefer — the preview follows the text."
+              error={
+                jsonText.trim() && !jsonParses
+                  ? 'Not valid JSON yet — the preview is still showing the last version that parsed.'
+                  : undefined
+              }
             >
               <textarea
                 className="textarea"
-                value={JSON.stringify(draft, null, 2)}
+                value={jsonText}
                 spellCheck={false}
                 onChange={(e) => {
+                  const text = e.target.value;
+                  setJsonText(text);
                   try {
-                    const next = JSON.parse(e.target.value) as Draft;
-                    setDraft(next);
+                    setDraft(JSON.parse(text) as Draft);
                   } catch {
-                    /* mid-typing JSON is expected to be invalid; leave the draft alone */
+                    /* mid-typing JSON is expected to be invalid; the draft keeps its last good value */
                   }
                 }}
               />

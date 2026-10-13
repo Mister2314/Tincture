@@ -6,17 +6,26 @@
  * action. Three copies of a card is three cards that drift apart the first time one of them
  * is improved — and they had already drifted, in three different shapes.
  *
- * The card does **not** render the theme's motif. A grid of live canvases is a grid of
- * animation loops for a picture 220px wide; the motif is named instead, and the builder is
- * where you watch it move.
+ * The preview shows the theme's **motif** — one static frame, never a loop.
+ *
+ * This reverses an earlier decision, so the reasoning is recorded here in full. The card
+ * used to name the motif and render only a ring and four swatches, on the argument that
+ * *"a grid of live canvases is a grid of animation loops for a picture 220px wide."* The
+ * argument was about loops. It was never about the picture — and throwing the picture
+ * away cost the one thing that makes a character theme recognisable: Van Gogh became
+ * Midnight with different dots. So the card now paints the motif through the same layer
+ * the app and the builder use, with reduced motion forced on: one frame is drawn when
+ * the card mounts, and no `requestAnimationFrame` is ever opened. Nine cards cost nine
+ * one-shot draws and zero loops — the picture is back, the budget is not spent.
  *
  * The action is its own `<button>` and the secondary action is a sibling — not a
  * `role="button"` span nested inside a button. Nested interactive content is invalid,
  * unreachable by keyboard, and needs `stopPropagation` on every handler to behave.
  */
 
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
+import { AmbienceLayer } from '../ambience/Ambience';
 import { applyTheme } from '../../theme/apply';
 import type { ResolvedTheme } from '../../theme/validate';
 
@@ -46,13 +55,22 @@ export function ThemeCard({
   const ref = useRef<HTMLDivElement>(null);
   const applied = useRef<string | null>(null);
 
-  // Apply once per theme. `applyTheme` writes custom properties onto this node only, so the
-  // rest of the app is untouched — and the card shows the theme it is advertising rather
-  // than the one currently selected.
-  if (ref.current && applied.current !== theme.id) {
-    applyTheme(theme, ref.current);
+  /*
+    Apply once per theme, **after** the node exists. `applyTheme` writes custom properties
+    onto this node only, so the rest of the app is untouched — and the card shows the theme
+    it is advertising rather than the one currently selected.
+
+    This used to run in the render body. `ref.current` is `null` on the first render, so
+    the write was skipped at mount and only happened on some later, unrelated re-render:
+    a grid of nine cards would show nine copies of the *current* theme until something else
+    made them re-render. An effect is the only place a ref is guaranteed to be populated.
+  */
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || applied.current === theme.id) return;
+    applyTheme(theme, node);
     applied.current = theme.id;
-  }
+  }, [theme]);
 
   const swatches = [
     theme.tokens.color.bg,
@@ -64,6 +82,9 @@ export function ThemeCard({
 
   const preview = (
     <div className="theme-card__preview" ref={ref}>
+      {motif ? (
+        <AmbienceLayer theme={theme} mode="fill" reduceMotion className="theme-card__motif" />
+      ) : null}
       <div className="theme-card__ring-wrap" aria-hidden="true">
         <svg className="theme-card__ring" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5" className="theme-card__ring-track" />

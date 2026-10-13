@@ -34,18 +34,40 @@ const VIEWS: Record<View, ComponentType> = {
   settings: SettingsView,
 };
 
+/**
+ * Anything that already does something with Space. Space is the browser's "activate the
+ * focused control" key, and a global shortcut that swallows it makes every button in the
+ * app unreachable by keyboard — the nav, the timer controls, the task checkbox, the phase
+ * buttons. The shortcut fires only when focus is somewhere that has no Space action of its
+ * own.
+ */
+const SPACE_OWNS_FOCUS = [
+  'button',
+  'a[href]',
+  'input',
+  'textarea',
+  'select',
+  'summary',
+  '[role="button"]',
+  '[role="checkbox"]',
+  '[role="tab"]',
+  '[role="switch"]',
+  '[role="menuitem"]',
+  '[contenteditable="true"]',
+].join(',');
+
 function Shell() {
   const { state, dispatch } = useStore();
   const { view, settings } = state;
 
-  // Space toggles the timer — unless the user is typing, or a dialog is open.
+  // Space toggles the timer — unless the user is typing, a control owns the key, or a
+  // dialog is open.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.code !== 'Space') return;
       const target = event.target as HTMLElement | null;
-      const tag = target?.tagName.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
       if (target?.isContentEditable) return;
+      if (target?.closest(SPACE_OWNS_FOCUS)) return;
       if (document.querySelector('.dialog-backdrop')) return;
 
       event.preventDefault();

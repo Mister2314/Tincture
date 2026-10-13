@@ -264,6 +264,25 @@ describe('reviveTimer', () => {
     expect(reviveTimer(broken, config, T0)?.status).toBe('running');
   });
 
+  it('never repairs its way into a running timer with no anchor', () => {
+    // The two repairs used to undo each other. A `running` timer with no anchor was
+    // downgraded to idle, and then a `paused` timer with no pause anchor was upgraded
+    // straight back to `running` — with the null anchor still in place. The result counts
+    // down for nobody, and it is the exact shape of the "a running timer was found idle
+    // with startedAt: null" report: it is stored as running, and the next load turns it
+    // into an idle timer that looks like it lost its session.
+    const broken = {
+      ...running(),
+      status: 'paused' as const,
+      startedAt: null,
+      pausedAt: null,
+    };
+    const back = reviveTimer(broken, config, T0);
+    expect(back?.status).toBe('idle');
+    expect(back?.startedAt).toBeNull();
+    expect(remainingMs(back!, T0 + 5 * MIN)).toBe(back!.durationMs);
+  });
+
   it('restarts a phase whose anchor is in the future — the clock-moved-back case', () => {
     const future = { ...running(), startedAt: T0 + 10 * MIN };
     const back = reviveTimer(future, config, T0);

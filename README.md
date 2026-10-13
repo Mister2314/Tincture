@@ -82,7 +82,8 @@ suite enforces it, so the gallery listing and the theme cannot disagree.
 
 Themes are **complete, not partial**: every token must be defined, because a theme with holes
 would inherit the previous theme's values and look broken in ways nobody could debug. Start
-from `themes/ember.json` or `themes/moss.json`.
+from `themes/moss.json` — the community folder — or from any file in
+`src/theme/builtin/`.
 
 Then open a pull request. CI validates it, and if something is wrong the message names the
 token and the reason — not `Invalid input`.
@@ -96,6 +97,8 @@ npm run build     # tsc -b && vite build — must pass with zero errors
 npm run lint      # oxlint
 npm run test      # vitest — the theme validator, the timer maths, and the theme gate
 npm run verify    # build + test: the gate before claiming anything works
+npm run preview   # serve the production build
+npm run check:browser   # the Playwright pass, against the preview server
 ```
 
 ## Architecture

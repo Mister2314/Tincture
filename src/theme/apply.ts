@@ -84,14 +84,14 @@ export function tokensToCssVars(theme: ResolvedTheme): Record<string, string> {
   vars['--t-effect-motion'] = String(effects.motion ?? 1);
   vars['--t-effect-blur'] = `${effects.blur ?? 0}px`;
 
-  // Motif parameters. These are read by the canvas renderer, not by the stylesheet — they
-  // are numbers the ambience layer uses for geometry. Published as custom properties anyway
-  // so the two CSS-only motifs (`terminal-grid`, `specimen`) can size themselves without
-  // JavaScript reading them back out of the DOM.
+  // Motif parameters. These are read by the canvas renderer from the resolved theme object,
+  // and published as custom properties for the two CSS-only motifs (`terminal-grid`,
+  // `specimen`), which are pure geometry and need no JavaScript to size themselves.
+  // `seed` is deliberately not published: only the canvas renderers use it, and they read
+  // it from the theme rather than from the DOM.
   vars['--t-effect-ambience'] = String(effects.ambience ?? 0);
   vars['--t-effect-density'] = String(effects.density ?? 0.5);
   vars['--t-effect-scale'] = String(effects.scale ?? 1);
-  vars['--t-effect-seed'] = String(effects.seed ?? 1);
 
   // Lets the browser theme scrollbars, form controls and the caret to match.
   vars['color-scheme'] = theme.appearance;
@@ -136,16 +136,6 @@ export function applyTheme(theme: ResolvedTheme, target?: HTMLElement): void {
   // The motif is published here too, not only consumed by `Ambience`: it lets the CSS-only
   // motifs (and any future stylesheet rule) key off the theme without a class-name dance.
   element.dataset.themeMotif = theme.motif ?? 'none';
-}
-
-/** Detach a theme from an element — used when the builder preview unmounts. */
-export function clearTheme(target: HTMLElement): void {
-  const holder = target as HTMLElement & { __tinctureVars?: string[] };
-  for (const name of holder.__tinctureVars ?? []) target.style.removeProperty(name);
-  holder.__tinctureVars = undefined;
-  delete target.dataset.themeId;
-  delete target.dataset.themeAppearance;
-  delete target.dataset.themeMotif;
 }
 
 /* ------------------------------------------------------------------ *

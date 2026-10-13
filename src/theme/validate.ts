@@ -171,6 +171,66 @@ function describe(value: unknown): string {
 }
 
 /* ------------------------------------------------------------------ *
+ * Zod issue flattening
+ * ------------------------------------------------------------------ */
+
+type RawIssue = {
+  path: PropertyKey[];
+  message: string;
+  code?: string;
+  errors?: unknown;
+};
+
+/**
+ * How useful an issue is: a deeper path beats a longer sentence, and a longer sentence
+ * breaks a tie.
+ *
+ * The tie-break matters. A shadow token is a `z.union` of "an alias string" and "a shadow
+ * object"; for a value that is an object with a bad field, both branches fail at the same
+ * depth, and the string branch's message ("A shadow must be an object like …") is far less
+ * helpful than the object branch's ("A shadow's x offset must be a number.").
+ */
+const usefulness = (issues: RawIssue[]): number =>
+  issues.reduce(
+    (max, issue) => Math.max(max, (issue.path?.length ?? 0) * 10_000 + (issue.message?.length ?? 0)),
+    0,
+  );
+
+/**
+ * Flatten zod's issues into this module's own shape.
+ *
+ * A `z.union` reports a single `invalid_union` issue whose message is the useless
+ * `Invalid input`; the text worth reading is nested in `issue.errors`, one array per branch.
+ * Passing the union message straight through is what made the README's promise — *"the
+ * message names the token and the reason"* — false for every shadow.
+ */
+function flattenIssues(issues: RawIssue[], prefix: PropertyKey[] = []): ThemeIssue[] {
+  const out: ThemeIssue[] = [];
+
+  for (const issue of issues) {
+    const path = [...prefix, ...(Array.isArray(issue.path) ? issue.path : [])];
+
+    if (issue.code === 'invalid_union' && Array.isArray(issue.errors)) {
+      const branches = (issue.errors as RawIssue[][]).filter(
+        (branch) => Array.isArray(branch) && branch.length > 0,
+      );
+      if (branches.length > 0) {
+        const best = branches.reduce((a, b) => (usefulness(b) > usefulness(a) ? b : a));
+        out.push(...flattenIssues(best, path));
+        continue;
+      }
+    }
+
+    out.push({
+      path: path.length ? path.map(String).join('.') : '(root)',
+      message: issue.message,
+    });
+  }
+
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
  * Public API
  * ------------------------------------------------------------------ */
 
@@ -184,12 +244,7 @@ export function parseTheme(raw: unknown): Result<ResolvedTheme> {
   const parsed = ThemeSchema.safeParse(raw);
 
   if (!parsed.success) {
-    return fail(
-      parsed.error.issues.map((issue) => ({
-        path: issue.path.length ? issue.path.join('.') : '(root)',
-        message: issue.message,
-      })),
-    );
+    return fail(flattenIssues(parsed.error.issues as unknown as RawIssue[]));
   }
 
   const theme = parsed.data;
@@ -222,9 +277,44 @@ export function parseTheme(raw: unknown): Result<ResolvedTheme> {
       }
 
       if (group === 'shadow') {
-        const layers = Array.isArray(step.value) ? step.value : [step.value];
-        resolved.shadow[key as (typeof THEME_TOKEN_NAMES.shadow)[number]] =
-          layers as ShadowLayerValue[];
+        const layers = (Array.isArray(step.value) ? step.value : [step.value]) as ShadowLayerValue[];
+
+        /*
+          A shadow layer's `color` is the one nested position an alias can appear in, and
+          the schema accepts it — but resolution only walks *top-level* token paths, so an
+          aliased shadow colour used to survive validation untouched and then fail
+          `SHADOW_VALUE` inside `shadowToCss`, which returns `none`. The result was a theme
+          that validated cleanly and silently lost its shadows. Resolve it here, where a
+          failure can still be reported as a readable issue.
+        */
+        const fixed: ShadowLayerValue[] = [];
+        let shadowProblem = false;
+
+        for (const layer of layers) {
+          const raw = layer?.color;
+          if (typeof raw !== 'string' || !ALIAS.test(raw)) {
+            fixed.push(layer);
+            continue;
+          }
+
+          const target = ALIAS.exec(raw)?.[1] ?? '';
+          const step2 = resolveAlias(theme, target);
+          const value = step2.ok ? step2.value : undefined;
+
+          if (typeof value !== 'string' || !HEX_COLOR.test(value)) {
+            issues.push({
+              path: `tokens.shadow.${key}.color`,
+              message: `A shadow's colour must resolve to a hex colour. "${raw}" does not.`,
+            });
+            shadowProblem = true;
+            break;
+          }
+          fixed.push({ ...layer, color: value });
+        }
+
+        if (!shadowProblem) {
+          resolved.shadow[key as (typeof THEME_TOKEN_NAMES.shadow)[number]] = fixed;
+        }
       } else {
         (resolved[group] as Record<string, unknown>)[key] = step.value;
       }

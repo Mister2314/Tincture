@@ -1,5 +1,8 @@
-import { Button, Field, Switch, ViewHeader } from '../../ui/primitives';
+import { useState } from 'react';
+
+import { Button, Dialog, Field, Switch, ViewHeader } from '../../ui/primitives';
 import { WheelField } from '../../ui/Wheel';
+import { clearState } from '../state/persistence';
 import { useStore } from '../state/store';
 
 const minutes = (ms: number) => Math.round(ms / 60_000);
@@ -7,6 +10,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000);
 export function SettingsView() {
   const { state, dispatch } = useStore();
   const { settings } = state;
+  const [eraseOpen, setEraseOpen] = useState(false);
 
   const setConfig = (patch: Partial<typeof settings.config>) =>
     dispatch({ type: 'timer/config', config: patch });
@@ -176,18 +180,43 @@ export function SettingsView() {
           >
             Export my data
           </Button>
+          <Button variant="danger" onClick={() => setEraseOpen(true)}>
+            Erase everything
+          </Button>
+        </div>
+      </div>
+
+      {/*
+        A dialog rather than `window.confirm`: the app draws its own controls everywhere
+        else, and a native confirm is the one place it stopped — on the most destructive
+        action in the product. `clearState()` removes the stored document *and*
+        `state/reset` rebuilds an empty one, because the reset alone used to reload the
+        very data it was supposed to delete.
+      */}
+      <Dialog open={eraseOpen} onClose={() => setEraseOpen(false)} title="Erase everything?">
+        <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+          This deletes every session, task, custom theme and setting stored in this browser.
+          It cannot be undone, and there is no copy anywhere else.
+        </p>
+        <p className="muted" style={{ fontSize: 13.5, marginTop: 'var(--t-dimension-space-sm)' }}>
+          Export your data first if you might want it back.
+        </p>
+        <div className="row row--between" style={{ marginTop: 'var(--t-dimension-space-lg)' }}>
+          <Button variant="ghost" onClick={() => setEraseOpen(false)}>
+            Keep my data
+          </Button>
           <Button
             variant="danger"
             onClick={() => {
-              if (window.confirm('Erase all sessions, tasks and settings on this device? This cannot be undone.')) {
-                dispatch({ type: 'state/reset' });
-              }
+              clearState();
+              dispatch({ type: 'state/reset' });
+              setEraseOpen(false);
             }}
           >
             Erase everything
           </Button>
         </div>
-      </div>
+      </Dialog>
     </section>
   );
 }

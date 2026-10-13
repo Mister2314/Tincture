@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run build && npm run test"
+    "verify": "npm run build && npm run test",
+    "check:browser": "node scripts/browser-check.cjs"
   },
   "dependencies": {
     "@ncdai/react-wheel-picker": "^1.2.3",

@@ -306,11 +306,94 @@ describe('aliases', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.issues[0].message).toContain('unit');
   });
+
+  it('resolves an alias inside a shadow layer instead of silently dropping the shadow', () => {
+    // A shadow layer's colour is the one nested position an alias can appear in, and the
+    // resolver only walked top-level token paths. An aliased shadow colour therefore passed
+    // validation untouched, then failed the assembled-string check in `shadowToCss`, which
+    // returns `none`. The theme was accepted and quietly lost its shadows.
+    const theme = base();
+    tokensOf(theme).shadow.card = { x: 0, y: 1, blur: 2, spread: 0, color: '{color.accent}' };
+    const result = parseTheme(theme);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const layers = result.value.tokens.shadow.card;
+      expect(layers[0].color).toBe('#e8a33d');
+      expect(shadowToCss(layers)).not.toBe('none');
+    }
+  });
+
+  it('reports a shadow colour alias that does not resolve to a colour', () => {
+    const theme = base();
+    tokensOf(theme).shadow.card = { x: 0, y: 1, blur: 2, spread: 0, color: '{dimension.radiusMd}' };
+    const result = parseTheme(theme);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues[0].message).toContain('hex colour');
+  });
 });
 
 /* ------------------------------------------------------------------ *
  * Parsing edges
  * ------------------------------------------------------------------ */
+
+describe('error messages are readable', () => {
+  /**
+   * The README promises that a rejected theme *"names the token and the reason — not
+   * `Invalid input`"*. That promise was false for every metadata field and every shadow
+   * number: zod's own text for a missing or mistyped key is
+   * `Invalid input: expected string, received undefined`, and those fields carried no
+   * custom message. These cases are what keeps the promise honest.
+   */
+  const offenders = (raw: unknown): string[] => {
+    const result = parseTheme(raw);
+    if (result.ok) return [];
+    return result.issues
+      .map((i) => i.message)
+      .filter((m) => /invalid input|expected .*, received/i.test(m));
+  };
+
+  it('never says "Invalid input" for a missing field', () => {
+    const theme = base();
+    for (const field of ['id', 'name', 'author', 'date', 'version', 'license', 'appearance']) {
+      delete (theme as Record<string, unknown>)[field];
+      expect(offenders(theme), `${field} produced a raw zod message`).toEqual([]);
+      Object.assign(theme, structuredClone((midnight as Record<string, unknown>)[field]));
+    }
+  });
+
+  it('never says "Invalid input" for a mistyped field', () => {
+    const theme = base();
+    (theme as Record<string, unknown>).name = 42;
+    expect(offenders(theme)).toEqual([]);
+    (theme as Record<string, unknown>).name = 'Fine';
+    (theme as Record<string, unknown>).appearance = 'twilight';
+    expect(offenders(theme)).toEqual([]);
+  });
+
+  it('never says "Invalid input" for a mistyped shadow number', () => {
+    const theme = base();
+    tokensOf(theme).shadow = { card: { x: 'left', y: 1, blur: 2, spread: 0, color: '#000000' } };
+    expect(offenders(theme)).toEqual([]);
+  });
+
+  it('never says "Invalid input" for a missing or mistyped tokens object', () => {
+    const missing = base();
+    delete (missing as Record<string, unknown>).tokens;
+    expect(offenders(missing)).toEqual([]);
+
+    const mistyped = base();
+    (mistyped as Record<string, unknown>).tokens = 'not an object';
+    expect(offenders(mistyped)).toEqual([]);
+  });
+
+  it('names the offending path, so a theme author knows where to look', () => {
+    const theme = base();
+    (theme as Record<string, unknown>).author = 42;
+    const result = parseTheme(theme);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues.some((i) => i.path === 'author')).toBe(true);
+  });
+});
 
 describe('parseThemeJson', () => {
   it('reports invalid JSON as a readable issue, not a throw', () => {

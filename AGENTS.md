@@ -72,7 +72,12 @@ npm run build      # tsc -b && vite build  — MUST pass with zero errors
 npm run lint       # oxlint
 npm run test       # vitest — theme validator + timer maths
 npm run verify     # build + test, the gate before saying done
+npm run check:browser   # the Playwright pass — needs `npm run preview` running first
 ```
+
+`check:browser` runs `scripts/browser-check.cjs`. Playwright is deliberately **not** a
+dependency (a ~100 MB browser download); the script resolves a global install itself and says
+so if it cannot find one. Point it elsewhere with `TINCTURE_URL=https://… npm run check:browser`.
 
 ## Rules that bite
 
@@ -88,6 +93,11 @@ npm run verify     # build + test, the gate before saying done
 
 ## Verification before "done"
 
-`npm run verify` green, plus a Playwright pass covering: onboarding completes, timer runs
-and survives a reload, theme switches, theme builder exports valid JSON, a malformed theme
-is rejected with a readable error. Evidence in the message, or no claim.
+`npm run verify` green, plus `npm run check:browser` green (start `npm run preview` first).
+The script covers the list this section used to describe in prose: onboarding completes, the
+timer runs and survives a reload, every theme applies and its motif actually paints, Space
+activates the focused control instead of the timer, the dialog traps Tab and marks the
+background inert, "Erase everything" really erases, the builder's JSON tab does not desync,
+a malformed theme is refused with a readable reason, the wheels open and Done commits while
+Cancel cancels, deleting a theme asks first, and 360px has no overflow and no undersized
+targets. Evidence in the message, or no claim.

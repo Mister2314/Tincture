@@ -18,15 +18,15 @@
       "surfaceActive": "#EFE7DF",
       "text": "#2B2622",
       "textMuted": "#6B6157",
-      "textSubtle": "#7A6F63",
+      "textSubtle": "#786D61",
       "accent": "#D4738C",
       "accentHover": "#E58FA6",
       "accentText": "#2B2622",
-      "border": "#EAE0D6",
-      "borderStrong": "#D8C9BC",
+      "border": "#D2BDA8",
+      "borderStrong": "#A68467",
       "focusRing": "#D4738C",
       "success": "#7C8B6F",
-      "danger": "#C2544F"
+      "danger": "#C04E49"
     },
     "dimension": {
       "radiusSm": "10px",

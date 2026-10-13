@@ -2,8 +2,8 @@
  * Applies the active theme to the document.
  *
  * Kept as its own component so the theme is written in one place. It reads the selected
- * theme (or the preview, when the theme view is open) and hands it to `applyTheme`, which
- * is the only function that touches the DOM with theme data.
+ * theme and hands it to `applyTheme`, which is the only function that touches the DOM with
+ * theme data.
  */
 
 import { useEffect } from 'react';
@@ -14,9 +14,7 @@ import { useStore } from './state/store';
 
 export function ThemeRoot() {
   const { state } = useStore();
-  const id = state.previewThemeId ?? state.settings.themeId;
-
-  const theme = findTheme(id, state.customThemes);
+  const theme = findTheme(state.settings.themeId, state.customThemes);
 
   useEffect(() => {
     applyTheme(theme);

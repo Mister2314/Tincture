@@ -17,26 +17,26 @@
       "surfaceActive": "#eae5dd",
       "text": "#1c1a17",
       "textMuted": "#5f5a52",
-      "textSubtle": "#8f8880",
+      "textSubtle": "#756e66",
       "accent": "#2f5d8a",
       "accentHover": "#264d73",
       "accentText": "#ffffff",
-      "border": "#e2ddd4",
-      "borderStrong": "#c8c1b5",
+      "border": "#c9c0af",
+      "borderStrong": "#978a73",
       "focusRing": "#2f5d8a",
       "success": "#2f7d5d",
       "danger": "#b8443f"
     },
     "dimension": {
-      "radiusSm": "6px",
-      "radiusMd": "12px",
-      "radiusLg": "20px",
+      "radiusSm": "12px",
+      "radiusMd": "18px",
+      "radiusLg": "26px",
       "radiusFull": "9999px",
-      "spaceXs": "4px",
-      "spaceSm": "8px",
-      "spaceMd": "16px",
-      "spaceLg": "24px",
-      "spaceXl": "40px"
+      "spaceXs": "6px",
+      "spaceSm": "10px",
+      "spaceMd": "18px",
+      "spaceLg": "28px",
+      "spaceXl": "48px"
     },
     "fontFamily": {
       "display": "instrument-serif",
@@ -44,17 +44,17 @@
       "mono": "jetbrains-mono"
     },
     "shadow": {
-      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#1c1a1714" },
+      "card": { "x": 0, "y": 2, "blur": 6, "spread": -1, "color": "#1c1a1712" },
       "elevated": [
-        { "x": 0, "y": 8, "blur": 24, "spread": -4, "color": "#1c1a171f" },
-        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#1c1a170f" }
+        { "x": 0, "y": 14, "blur": 34, "spread": -8, "color": "#1c1a171a" },
+        { "x": 0, "y": 3, "blur": 10, "spread": -2, "color": "#1c1a170d" }
       ]
     }
   },
   "effects": {
-    "grain": 0.02,
-    "glow": 0,
+    "grain": 0.05,
+    "glow": 0.07,
     "motion": 1,
-    "blur": 10
+    "blur": 16
   }
 }

@@ -286,4 +286,3 @@ export function resolveCustomThemes(raw: unknown[]): ResolvedTheme[] {
 }
 
 export const newId = id;
-export const STORAGE_KEY = KEY;

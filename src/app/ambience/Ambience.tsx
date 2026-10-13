@@ -110,12 +110,9 @@ export function AmbienceLayer({
     live.current.progress = progress;
   }, [phase, running, progress]);
 
-  // The motif is a property of the theme, so the container always states it — the CSS-only
-  // motifs and the art layer key off this attribute, and it survives a switch to `none`.
+  // The art layer keys off the motif; the container's own `data-motif` is set in the JSX
+  // below, so it survives a switch to `none` without an effect doing it a second time.
   useEffect(() => {
-    const container = containerRef.current;
-    if (container) container.dataset.motif = motif;
-
     const art = artRef.current;
     if (art) art.style.backgroundImage = motif === 'starry-flow' && active ? `url("${ART_SRC}")` : '';
   }, [motif, active]);
@@ -324,8 +321,10 @@ export function AmbienceLayer({
  */
 export function Ambience() {
   const { state, now } = useStore();
-  const id = state.previewThemeId ?? state.settings.themeId;
-  const theme = useMemo(() => findTheme(id, state.customThemes), [id, state.customThemes]);
+  const theme = useMemo(
+    () => findTheme(state.settings.themeId, state.customThemes),
+    [state.settings.themeId, state.customThemes],
+  );
   const progress = useMemo(() => timerProgress(state.timer, now), [state.timer, now]);
 
   return (
