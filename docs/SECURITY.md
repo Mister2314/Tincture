@@ -60,7 +60,11 @@ Per-type, and narrow on purpose:
 |---|---|---|
 | colour | `/^#([0-9a-f]{3}\|[0-9a-f]{6}\|[0-9a-f]{8})$/i` | A hex string cannot contain a parenthesis, so the whole function-injection class is unreachable. Alpha survives via the 8-digit form. |
 | dimension | `-?\d+(\.\d+)?` + unit from `px, rem, em, %` | The unit list is closed, so `calc()`, `var()` and `url` cannot pass. Absolute value capped at `10000`. |
-| font family | one of `manrope`, `instrument-serif`, `jetbrains-mono` | A *name*, not a source. A theme can never point at a remote font. |
+| font family | one of `manrope`, `instrument-serif`, `jetbrains-mono`, `fraunces`, `bricolage-grotesque`, `space-grotesk` | A *name*, not a source. All six are bundled under `src/assets/fonts/`; a theme can never point at a remote font. |
+| `motif` | one of `none`, `starry-flow`, `terminal-grid`, `hearth`, `neon-rain`, `sakura-tree`, `specimen`, `frost-growth` | A *name*, not an asset and not code. The app owns the renderer and the bytes, so a theme has no way to ship a script or an image. An unrecognised name falls back to `none` instead of throwing. |
+| `effects.ambience` / `density` | `0…1` | Bounded like every other number. `ambience: 0` switches a motif off without changing `motif`. |
+| `effects.scale` | `0.2…3` | Geometry, bounded, so a motif cannot be scaled into a layout-breaking size. |
+| `effects.seed` | integer `0…999999` | Seeds the deterministic motifs. An integer, so a theme cannot smuggle a float through and make a motif differ between loads. |
 | shadow | an object `{x, y, blur, spread, color}`, or 1–4 of them | Structured numbers. A shadow is never a CSS string. |
 | `appearance` | `light` \| `dark` | Drives `color-scheme`; an enum, not free text. |
 | `id` | `^[a-z0-9]+(-[a-z0-9]+)*$`, 2–48 chars | Safe as a `data-` attribute and a filename. |
@@ -161,6 +165,14 @@ Written down so nobody assumes otherwise.
   never fetched, and it never reaches CSS.
 - **`looksLikeInjection()`** is a *diagnostic*, not a control. It exists so the builder can
   explain why a value was rejected. The schema is what rejects it.
+- **The motif renderers are code, not data.** They read only validated numbers and the
+  theme's own colour tokens, and the single bundled image is app-owned and same-origin — but
+  a renderer is still code, so a bug in one (an unbounded loop, a pathological seed) is a
+  denial of service against the user's own machine, not a breach of the theme boundary. The
+  mitigation is bounds rather than sandboxing: every parameter a motif reads is range-checked
+  by the schema, `seed` is an integer, `density` is *mapped* onto a per-motif element count
+  rather than used as one, and `ambience: 0` stops a motif entirely. The canvas is also
+  capped at `2×` device pixels, so a 3× display cannot quadruple the fill rate.
 
 ---
 

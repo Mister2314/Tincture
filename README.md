@@ -34,8 +34,14 @@ covered, is in [`docs/SECURITY.md`](docs/SECURITY.md).
   drift.
 - **Tasks** — give a job an estimate in pomodoros; each finished focus session fills a pip.
 - **Statistics** — today, current streak, and the last fourteen days.
-- **Themes** — four built in (Midnight, Daylight, Starry Night, Sakura), plus a visual builder
-  that needs no code, plus import/export as JSON.
+- **Themes** — nine built in: two neutrals (Midnight, Daylight) and seven character themes,
+  each with its own background **motif**. Plus a visual builder that needs no code, and
+  import/export as JSON.
+- **Ambience** — the character themes are not recolours. Each names a motif from a closed
+  enum and the app paints it: *Starry Night* advected by its own brushwork, a hearth whose
+  glow follows the timer phase, rain mirrored in a wet street, a seeded L-system tree,
+  crystals growing in from the window frame, a drafting grid, a specimen plate. A theme
+  chooses; the app owns the bytes and the renderer.
 - **Community** — themes other people contributed, read straight from this repository over the
   GitHub API. No backend, and every submission is a reviewable commit.
 - **Offline by default.** Everything lives in `localStorage`. No account, no server, nothing

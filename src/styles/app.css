@@ -39,9 +39,9 @@
   --t-dimension-space-lg: 24px;
   --t-dimension-space-xl: 40px;
 
-  --t-fontFamily-display: 'Instrument Serif', ui-serif, Georgia, serif;
-  --t-fontFamily-body: 'Manrope Variable', Manrope, ui-sans-serif, system-ui, sans-serif;
-  --t-fontFamily-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --t-fontFamily-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  --t-fontFamily-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --t-fontFamily-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --t-shadow-card: 0px 1px 2px 0px #00000066;
   --t-shadow-elevated: 0px 8px 24px -4px #00000099, 0px 2px 6px 0px #0000004d;
@@ -144,6 +144,14 @@ h4 {
   --t-dur-fast: calc(120ms * var(--t-effect-motion, 1));
   --t-dur-base: calc(200ms * var(--t-effect-motion, 1));
   --t-dur-slow: calc(400ms * var(--t-effect-motion, 1));
+
+  /* Three named easings. Nothing in this file uses the browser's default `ease`,
+     because it is the curve that makes hand-made UI read as default UI. A theme
+     cannot change these: motion *amount* is a theme decision, motion *character*
+     is not. */
+  --t-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --t-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* --------------------------------------------------------------------------
@@ -667,9 +675,9 @@ h4 {
   display: flex;
   align-items: center;
   gap: var(--t-dimension-space-md);
-  padding: var(--t-dimension-space-md) var(--t-dimension-space-lg);
+  padding: var(--t-dimension-space-sm) var(--t-dimension-space-lg);
   border-bottom: 1px solid var(--t-color-border);
-  transition: background var(--t-dur-fast) ease;
+  transition: background var(--t-dur-fast) var(--t-ease-out);
 }
 
 .task:last-child {
@@ -680,20 +688,51 @@ h4 {
   background: var(--t-color-surface-hover);
 }
 
+/* Active used to be `inset 3px 0 0 accent` — a coloured bar down the left edge, which is
+   the most copied generated-UI flourish there is. The row is tinted instead, and the dot
+   next to the title carries the meaning. */
 .task[data-active='true'] {
-  background: color-mix(in srgb, var(--t-color-accent) 10%, transparent);
-  box-shadow: inset 3px 0 0 var(--t-color-accent);
+  background: color-mix(in srgb, var(--t-color-accent) 9%, transparent);
+}
+
+/* A row that was just added keeps a brighter tint for a moment, then settles. This is the
+   answer to "did it actually get created?", given where the question is asked. */
+@keyframes task-settle {
+  from {
+    background: color-mix(in srgb, var(--t-color-accent) 26%, transparent);
+  }
+  to {
+    background: color-mix(in srgb, var(--t-color-accent) 7%, transparent);
+  }
+}
+
+.task[data-new='true'] {
+  animation: task-settle var(--t-dur-slow) var(--t-ease-out) both;
 }
 
 .task__check {
   flex: none;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--t-dimension-radius-sm);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--t-dimension-radius-full);
   border: 1.5px solid var(--t-color-border-strong);
   display: grid;
   place-items: center;
-  transition: background var(--t-dur-fast) ease, border-color var(--t-dur-fast) ease;
+  /* The only token the schema offers for "type on a filled surface". */
+  color: var(--t-color-accent-text);
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    border-color var(--t-dur-fast) var(--t-ease-out);
+}
+
+.task__check svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.task__check:hover {
+  border-color: var(--t-color-accent);
 }
 
 .task__check[aria-checked='true'] {
@@ -701,8 +740,43 @@ h4 {
   border-color: var(--t-color-success);
 }
 
-.task__title {
+.task__check:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.task__body {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 0;
+  text-align: left;
+  border-radius: var(--t-dimension-radius-sm);
+}
+
+.task__body:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.task__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.task__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--t-dimension-radius-full);
+  background: var(--t-color-accent);
+}
+
+.task__title {
   min-width: 0;
   font-size: 14.5px;
   overflow: hidden;
@@ -715,20 +789,39 @@ h4 {
   color: var(--t-color-text-subtle);
 }
 
-.task__pips {
+.task__progress {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 10px;
+}
+
+.task__count {
+  font-family: var(--t-fontFamily-mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-color-text-subtle);
+}
+
+.task__count-sep {
+  opacity: 0.45;
+  margin: 0 1px;
+}
+
+.task__track {
   flex: none;
-}
-
-.pip {
-  width: 8px;
-  height: 8px;
+  position: relative;
+  width: 64px;
+  height: 3px;
   border-radius: var(--t-dimension-radius-full);
-  background: var(--t-color-border-strong);
+  background: var(--t-color-border);
+  overflow: hidden;
 }
 
-.pip[data-filled='true'] {
+.task__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  border-radius: inherit;
   background: var(--t-color-accent);
 }
 
@@ -737,12 +830,34 @@ h4 {
   gap: var(--t-dimension-space-xs);
   flex: none;
   opacity: 0;
-  transition: opacity var(--t-dur-fast) ease;
+  transition: opacity var(--t-dur-fast) var(--t-ease-out);
 }
 
 .task:hover .task__actions,
 .task:focus-within .task__actions {
   opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Task composer
+   -------------------------------------------------------------------------- */
+
+.composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 168px auto;
+  align-items: end;
+  gap: var(--t-dimension-space-md);
+  margin-bottom: var(--t-dimension-space-lg);
+}
+
+.composer__estimate .field__label {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .composer {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -1153,6 +1268,154 @@ h4 {
   display: block;
 }
 
+/* --------------------------------------------------------------------------
+   Wheel picker
+
+   The wheel comes from @ncdai/react-wheel-picker and ships almost no appearance
+   on purpose — its own CSS only positions things and sets the fade mask. Every
+   colour, radius, size and font below is ours, read from the theme tokens, so a
+   theme changes the picker without the picker knowing a theme exists.
+
+   `--wheel-item-height` must stay equal to the `optionItemHeight` prop in
+   `ui/Wheel.tsx`. The library positions options from the prop; the highlight
+   band is sized from this variable. If they disagree the band drifts off the
+   selected row.
+   -------------------------------------------------------------------------- */
+
+.wheel {
+  --wheel-item-height: 44px;
+  position: relative;
+  padding: 0 var(--t-dimension-space-sm);
+}
+
+/*
+  `[data-rwp]` — the wheel's visible window.
+
+  The library sets its own height **inline** from `optionItemHeight` × its geometry
+  (measured: 282px for `optionItemHeight: 44`), so this file must not try to set one. The
+  fallback below only covers the frame before that inline style lands; it is not the real
+  height, and `--wheel-item-height` exists for the highlight band and the option rows, which
+  the library does not size.
+
+  `contain: paint` keeps the wheel's contents from affecting anything outside it. Note what
+  this is *not*: an earlier version of this comment claimed the library's 3D transform context
+  let the option list escape `overflow: hidden`, and that `contain: paint` was the fix for a
+  click-swallowing overlay. That explanation was wrong. The real cause was that this project
+  never imported the package's stylesheet, so `[data-rwp-options]` was never `position:
+  absolute` and the options piled up in normal flow — an 8360px column that covered the
+  dialog's buttons and stretched its scroll height to 15,814px. Importing the stylesheet fixed
+  all of it. Containment stays because clipping a wheel is correct regardless.
+*/
+[data-rwp] {
+  height: calc(var(--wheel-item-height) * 5);
+  contain: paint;
+}
+
+/* One row of type, dimmed. The selected row is drawn by the highlight below. */
+[data-rwp-option] {
+  height: var(--wheel-item-height);
+  font-size: 19px;
+  font-weight: 450;
+  color: var(--t-color-text-subtle);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--t-dur-fast) var(--t-ease-out);
+}
+
+/* The band the selected value sits in. This is the piece the library leaves
+   empty, and the piece that makes the picker read as a control rather than as
+   text that moves. */
+[data-rwp-highlight-wrapper] {
+  height: var(--wheel-item-height);
+  background: var(--t-color-surface);
+  border-radius: var(--t-dimension-radius-md);
+  font-size: 26px;
+  font-weight: 550;
+  color: var(--t-color-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+[data-rwp-highlight-item] {
+  height: var(--wheel-item-height);
+}
+
+/* Focus ring on the wheel itself, matching every other control. */
+[data-rwp]:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--t-dimension-radius-md);
+}
+
+/* No unit label inside the wheel. It was pinned to the far right of a full-width band and
+   read as detached from the number it belonged to. The reference iOS pickers show the value
+   alone, and the trigger pill already carries the unit where it is in context. */
+
+/* The wheel is a control, so it keeps working under reduced motion — the
+   scrolling *is* the input. What goes is the 3D rotation and the easing, which
+   are decoration. */
+[data-reduce-motion='true'] .wheel [data-rwp-wrapper] {
+  perspective: none;
+}
+
+[data-reduce-motion='true'] .wheel [data-rwp-option] {
+  transition: none;
+}
+
+/* --------------------------------------------------------------------------
+   Value pill — the button that opens a wheel
+   -------------------------------------------------------------------------- */
+
+.value-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 7px 12px;
+  min-width: 92px;
+  justify-content: flex-end;
+  background: var(--t-color-surface);
+  border: 1px solid var(--t-color-border);
+  border-radius: var(--t-dimension-radius-sm);
+  transition:
+    background var(--t-dur-fast) var(--t-ease-out),
+    border-color var(--t-dur-fast) var(--t-ease-out),
+    transform var(--t-dur-fast) var(--t-ease-out);
+}
+
+.value-pill:hover:not(:disabled) {
+  background: var(--t-color-surface-hover);
+  border-color: var(--t-color-border-strong);
+}
+
+.value-pill:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.value-pill:focus-visible {
+  outline: 2px solid var(--t-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.value-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.value-pill__value {
+  font-size: 16px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-color-text);
+}
+
+.value-pill__unit {
+  font-size: 13px;
+  color: var(--t-color-text-muted);
+}
+
+.dialog__actions {
+  margin-top: var(--t-dimension-space-lg);
+}
+
 @media (max-width: 640px) {
   .main {
     padding: var(--t-dimension-space-lg) var(--t-dimension-space-md) var(--t-dimension-space-xl);
@@ -1179,4 +1442,204 @@ h4 {
   .onboarding__panel {
     padding: var(--t-dimension-space-lg);
   }
+}
+
+/* --------------------------------------------------------------------------
+   App root — the one stacking context the ambience lives inside
+   -------------------------------------------------------------------------- */
+
+.app-root {
+  position: relative;
+  min-height: 100%;
+  /* Creates the stacking context that lets `.ambience` sit at a negative z-index and
+     still be visible above the page background, while staying under the content.
+     Without it a fixed layer at z-index 0 paints over in-flow content and the timer
+     vanishes behind its own background. */
+  isolation: isolate;
+}
+
+/* --------------------------------------------------------------------------
+   Ambience — the theme's background motif
+
+   One fixed canvas behind everything, plus a static layer for the one motif that uses a
+   bundled image. It never takes a pointer event and never affects layout. Every colour
+   it draws comes from the theme's own tokens: the canvas renderers read them directly,
+   and the two CSS-only motifs read the --t-effect-* properties the theme engine
+   publishes.
+
+   Reduced motion stops the motif animating. It does not remove it — the background is
+   still the theme's background.
+   -------------------------------------------------------------------------- */
+
+.ambience {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ambience__art,
+.ambience__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The painting, under the particle canvas. Its strength is the theme's `ambience` token,
+   so a theme can hold the image back without giving up the motif. */
+.ambience__art {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: calc(var(--t-effect-ambience, 0) * 0.46);
+}
+
+/* Frost asks for a high `blur` token; the crystals are meant to be soft at the frame
+   edge. Read from the theme, so a theme that lowers blur gets sharper ice. */
+.ambience[data-motif='frost-growth'] .ambience__canvas {
+  filter: blur(calc(var(--t-effect-blur, 0px) * 0.32));
+}
+
+/* A scrim between the motif and the content, and the reason the ambience is allowed to be
+   as present as it is. It washes the theme's *own* background over the centre of the
+   viewport — where the readout sits — so the contrast floor is enforced by construction
+   rather than by every motif being tuned to be dim enough. The edges keep the full motif,
+   which is where a background should be interesting anyway. */
+.ambience__scrim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    70% 54% at 50% 45%,
+    color-mix(in srgb, var(--t-color-bg) 58%, transparent) 0%,
+    color-mix(in srgb, var(--t-color-bg) 34%, transparent) 44%,
+    transparent 100%
+  );
+}
+
+/* The app's own "Reduce motion" setting, as a stylesheet rule. The OS preference is
+   handled by the media query above; this is the in-app switch, and both must behave the
+   same way. */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* --------------------------------------------------------------------------
+   Motif: terminal-grid — a drafting grid, drawn in CSS
+
+   Geometry, so it needs no canvas: a measured span with a fine grid, a coarse grid, edge
+   ticks, and one scan line that moves in *steps*. The stepping is the point — an eased
+   sweep reads as decoration, a stepped one reads as an instrument.
+   -------------------------------------------------------------------------- */
+
+.ambience[data-motif='terminal-grid'] {
+  --grid-minor: calc((30px - 10px * var(--t-effect-density, 0.5)) * var(--t-effect-scale, 1));
+  --grid-major: calc(var(--grid-minor) * 5);
+}
+
+.ambience[data-motif='terminal-grid']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--t-effect-ambience, 0);
+  background-image:
+    /* ticks along the top and left edges */
+    repeating-linear-gradient(to right, color-mix(in srgb, var(--t-color-accent) 40%, transparent) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--t-color-accent) 40%, transparent) 0 1px, transparent 1px 12px),
+    /* major grid */
+    linear-gradient(to right, color-mix(in srgb, var(--t-color-accent) 26%, transparent) 0 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--t-color-accent) 26%, transparent) 0 1px, transparent 1px),
+    /* minor grid */
+    linear-gradient(to right, color-mix(in srgb, var(--t-color-accent) 11%, transparent) 0 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--t-color-accent) 11%, transparent) 0 1px, transparent 1px);
+  background-size:
+    100% 14px,
+    14px 100%,
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
+    var(--grid-minor) var(--grid-minor),
+    var(--grid-minor) var(--grid-minor);
+  background-position: top left, top left, top left, top left, top left, top left;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat;
+}
+
+.ambience[data-motif='terminal-grid']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  opacity: var(--t-effect-ambience, 0);
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--t-color-accent) 55%, transparent) 22%,
+    color-mix(in srgb, var(--t-color-accent) 55%, transparent) 78%,
+    transparent
+  );
+  animation: grid-scan 7s steps(56, end) infinite;
+}
+
+@keyframes grid-scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(100vh - 2px));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Motif: specimen — a specimen plate, drawn in CSS
+
+   Ruled label lines and a pressed botanical silhouette: a real print genre, not a
+   texture. The silhouette is inline SVG rather than a background `url()` because a
+   data-URI cannot read the theme's custom properties — it would be the same green in
+   every theme.
+   -------------------------------------------------------------------------- */
+
+/* Ruled label lines — the block a specimen sheet is annotated on. The right half, so the
+   plate reads as a plate: the plant mounted on one side, the label written on the other. */
+.ambience[data-motif='specimen']::before {
+  content: '';
+  position: absolute;
+  left: 52%;
+  right: 9%;
+  bottom: 14%;
+  height: 32vh;
+  opacity: var(--t-effect-ambience, 0);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--t-color-text) 15%, transparent) 0 1px,
+    transparent 1px calc(34px * var(--t-effect-scale, 1))
+  );
+}
+
+/* The plate frame, inset from the viewport edge — the sheet the specimen is mounted on.
+   Drawn on a pseudo-element rather than on the canvas: a canvas is a *replaced* element,
+   so `width: auto` inside `inset: 0` resolves to its intrinsic pixel size instead of the
+   containing block, and the frame renders as a small box in the corner. */
+.ambience[data-motif='specimen']::after {
+  content: '';
+  position: absolute;
+  inset: 3.2vh 3.2vw;
+  border: 1px solid color-mix(in srgb, var(--t-color-text) 10%, transparent);
+  opacity: var(--t-effect-ambience, 0);
+}
+
+.ambience__specimen {
+  position: absolute;
+  left: 24%;
+  top: 50%;
+  width: min(28vw, 300px);
+  height: auto;
+  transform: translate(-50%, -50%) rotate(-5deg);
+  opacity: calc(var(--t-effect-ambience, 0) * 0.72);
 }

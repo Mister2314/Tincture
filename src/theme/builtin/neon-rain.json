@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "neon-rain",
+  "name": "Neon Rain",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "dark",
+  "description": "Rain on a wet street: every streak mirrored below the horizon, wobbling as the water moves.",
+  "motif": "neon-rain",
+  "tokens": {
+    "color": {
+      "bg": "#0A0E17",
+      "bgElevated": "#0F1626",
+      "surface": "#141C2E",
+      "surfaceHover": "#1C2436",
+      "surfaceActive": "#252F47",
+      "text": "#EAF0FA",
+      "textMuted": "#9FB0CC",
+      "textSubtle": "#6E7F9C",
+      "accent": "#FF3D9A",
+      "accentHover": "#FF6FB3",
+      "accentText": "#0A0E17",
+      "border": "#1E2740",
+      "borderStrong": "#5B3FA8",
+      "focusRing": "#22D3EE",
+      "success": "#22D3EE",
+      "danger": "#FF5F7A"
+    },
+    "dimension": {
+      "radiusSm": "8px",
+      "radiusMd": "14px",
+      "radiusLg": "20px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "bricolage-grotesque",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 3, "spread": 0, "color": "#00000099" },
+      "elevated": [
+        { "x": 0, "y": 10, "blur": 30, "spread": -6, "color": "#000000cc" },
+        { "x": 0, "y": 0, "blur": 18, "spread": 0, "color": "#FF3D9A33" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.06,
+    "glow": 0.4,
+    "motion": 1.1,
+    "blur": 16,
+    "ambience": 0.8,
+    "density": 0.7,
+    "scale": 1,
+    "seed": 2084
+  }
+}

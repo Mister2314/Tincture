@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "herbarium",
+  "name": "Herbarium",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "A specimen plate: ruled label lines, a pressed plant, an annotation hand. A print genre, not a texture.",
+  "motif": "specimen",
+  "tokens": {
+    "color": {
+      "bg": "#F3EEDF",
+      "bgElevated": "#FAF6EC",
+      "surface": "#FFFCF5",
+      "surfaceHover": "#EFE9D9",
+      "surfaceActive": "#E7E0CD",
+      "text": "#2F2A22",
+      "textMuted": "#5A4A38",
+      "textSubtle": "#6F6455",
+      "accent": "#C98B8B",
+      "accentHover": "#D9A0A0",
+      "accentText": "#2F2A22",
+      "border": "#E0D8C6",
+      "borderStrong": "#C9BFA8",
+      "focusRing": "#6C8CA8",
+      "success": "#4E6B3C",
+      "danger": "#A85548"
+    },
+    "dimension": {
+      "radiusSm": "3px",
+      "radiusMd": "6px",
+      "radiusLg": "12px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "fraunces",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 1, "spread": 0, "color": "#2F2A2212" },
+      "elevated": [
+        { "x": 0, "y": 4, "blur": 14, "spread": -4, "color": "#2F2A221a" },
+        { "x": 0, "y": 1, "blur": 3, "spread": 0, "color": "#2F2A220d" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.04,
+    "glow": 0.08,
+    "motion": 1,
+    "blur": 6,
+    "ambience": 0.62,
+    "density": 0.5,
+    "scale": 1,
+    "seed": 1735
+  }
+}

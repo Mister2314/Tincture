@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
+import { LazyMotion, domMax } from 'motion/react';
 
+import { Ambience } from './app/ambience/Ambience';
 import { ThemeRoot } from './app/ThemeRoot';
 import { useStore, type View } from './app/state/store';
 import { GalleryView } from './app/views/GalleryView';
@@ -80,9 +82,30 @@ function Shell() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <ThemeRoot />
-      <Shell />
-    </ToastProvider>
+    /*
+      `LazyMotion` + `strict` loads only the DOM feature set and makes `motion.*` throw, so
+      every animation has to go through `m.*`. That is the point: the full `motion` bundle is
+      ~48 kB gzipped, this feature set is roughly half, and `strict` is what stops someone
+      (me, later) from quietly pulling the heavy path back in with one convenient import.
+
+      `domMax` rather than `domAnimation` because the task list reorders when you complete
+      something, and `layout` animations live in `domMax`. Without it the rows teleport.
+    */
+    <LazyMotion features={domMax} strict>
+      <ToastProvider>
+        {/*
+          One stacking context for the whole app. That is what lets the ambience sit at a
+          negative z-index — behind the content, above the page background — instead of
+          needing a positive one and covering everything. Without it a `z-index: 0` fixed
+          layer paints on top of in-flow content, and the timer disappears behind its own
+          background.
+        */}
+        <div className="app-root">
+          <ThemeRoot />
+          <Ambience />
+          <Shell />
+        </div>
+      </ToastProvider>
+    </LazyMotion>
   );
 }

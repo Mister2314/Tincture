@@ -9,12 +9,36 @@ import { describe, expect, it } from 'vitest';
 
 import midnight from './builtin/midnight.json';
 import daylight from './builtin/daylight.json';
-import starryNight from './builtin/starry-night.json';
-import sakura from './builtin/sakura.json';
+import vanGogh from './builtin/van-gogh.json';
+import terminalAmber from './builtin/terminal-amber.json';
+import ember from './builtin/ember.json';
+import neonRain from './builtin/neon-rain.json';
+import sakuraTree from './builtin/sakura-tree.json';
+import herbarium from './builtin/herbarium.json';
+import frost from './builtin/frost.json';
 
 import { applyTheme, shadowToCss, themeToCss, tokensToCssVars } from './apply';
 import { looksLikeInjection, parseTheme, parseThemeJson } from './validate';
-import { ALL_TOKEN_PATHS, FONT_FAMILIES, THEME_TOKEN_NAMES } from './schema';
+import { ALL_TOKEN_PATHS, FONT_FAMILIES, MOTIFS, THEME_TOKEN_NAMES } from './schema';
+import { kindOf } from '../app/ambience/types';
+import { rendererFor } from '../app/ambience/renderers';
+
+/**
+ * Every theme the app ships. Held at module scope so the motif contract below can check the
+ * same list — a built-in that names a motif with no renderer is worse than one with no
+ * motif, because it lies to whoever selects it.
+ */
+const BUILTINS = [
+  ['midnight', midnight],
+  ['daylight', daylight],
+  ['van-gogh', vanGogh],
+  ['terminal-amber', terminalAmber],
+  ['ember', ember],
+  ['neon-rain', neonRain],
+  ['sakura-tree', sakuraTree],
+  ['herbarium', herbarium],
+  ['frost', frost],
+] as const;
 
 /* ------------------------------------------------------------------ *
  * Helpers
@@ -31,12 +55,7 @@ const tokensOf = (theme: Record<string, unknown>) =>
  * ------------------------------------------------------------------ */
 
 describe('built-in themes', () => {
-  const builtins = [
-    ['midnight', midnight],
-    ['daylight', daylight],
-    ['starry-night', starryNight],
-    ['sakura', sakura],
-  ] as const;
+  const builtins = BUILTINS;
 
   it.each(builtins)('%s is valid', (_name, theme) => {
     const result = parseTheme(theme);
@@ -66,6 +85,51 @@ describe('built-in themes', () => {
         [...THEME_TOKEN_NAMES.shadow].sort(),
       );
     }
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * Motifs — a theme chooses, the app paints
+ * ------------------------------------------------------------------ */
+
+describe('motifs', () => {
+  it('every motif in the enum resolves to a kind', () => {
+    for (const motif of MOTIFS) {
+      expect(['none', 'canvas', 'css']).toContain(kindOf(motif));
+    }
+  });
+
+  it('every canvas motif has a renderer', () => {
+    for (const motif of MOTIFS) {
+      if (kindOf(motif) === 'canvas') {
+        expect(rendererFor(motif), `${motif} is declared as canvas but has no renderer`).not.toBeNull();
+      }
+    }
+  });
+
+  it('every built-in theme names a motif the app can actually paint', () => {
+    for (const [name, theme] of BUILTINS) {
+      const result = parseTheme(theme);
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+
+      const motif = result.value.motif;
+      if (kindOf(motif) === 'canvas') {
+        expect(rendererFor(motif!), `${name} declares motif "${motif}" with no renderer`).not.toBeNull();
+      }
+      // A theme that asks for a motif must also ask for it to be visible — `ambience` is
+      // what switches it on, and it defaults to 0.
+      if (motif && motif !== 'none') {
+        expect(result.value.effects?.ambience ?? 0).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('an unknown motif falls back to none rather than throwing', () => {
+    expect(kindOf(undefined)).toBe('none');
+    expect(kindOf('not-a-motif' as never)).toBe('none');
+    expect(kindOf('terminal-grid')).toBe('css');
+    expect(kindOf('sakura-tree')).toBe('canvas');
   });
 });
 
@@ -313,7 +377,7 @@ describe('css emission', () => {
   });
 
   it('never emits a url() for any built-in theme', () => {
-    for (const builtin of [midnight, daylight, starryNight, sakura]) {
+    for (const [, builtin] of BUILTINS) {
       const parsed = parseTheme(builtin);
       expect(parsed.ok).toBe(true);
       if (!parsed.ok) continue;

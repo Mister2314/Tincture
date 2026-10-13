@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "terminal-amber",
+  "name": "Terminal Amber",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "dark",
+  "description": "P3 phosphor on smoked glass. A drafting grid, and a timer that reads as a measured span.",
+  "motif": "terminal-grid",
+  "tokens": {
+    "color": {
+      "bg": "#0A0705",
+      "bgElevated": "#130E08",
+      "surface": "#191209",
+      "surfaceHover": "#221A0E",
+      "surfaceActive": "#2C2213",
+      "text": "#E8E0D0",
+      "textMuted": "#B7A587",
+      "textSubtle": "#8B7A5C",
+      "accent": "#FFB000",
+      "accentHover": "#FFC633",
+      "accentText": "#0A0705",
+      "border": "#3A2C18",
+      "borderStrong": "#5E4620",
+      "focusRing": "#FFB000",
+      "success": "#7FBF5F",
+      "danger": "#FF5F56"
+    },
+    "dimension": {
+      "radiusSm": "2px",
+      "radiusMd": "6px",
+      "radiusLg": "10px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "space-grotesk",
+      "body": "space-grotesk",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 0, "spread": 0, "color": "#000000a6" },
+      "elevated": [
+        { "x": 0, "y": 6, "blur": 16, "spread": -6, "color": "#000000cc" },
+        { "x": 0, "y": 1, "blur": 3, "spread": 0, "color": "#00000080" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.1,
+    "glow": 0.18,
+    "motion": 0.8,
+    "blur": 8,
+    "ambience": 0.72,
+    "density": 0.55,
+    "scale": 1,
+    "seed": 1975
+  }
+}

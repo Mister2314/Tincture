@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "frost",
+  "name": "Frost",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "Ice on a cold pane. Crystals creep inward from the edges, not out from the middle.",
+  "motif": "frost-growth",
+  "tokens": {
+    "color": {
+      "bg": "#EAF2F7",
+      "bgElevated": "#F7FAFC",
+      "surface": "#FFFFFF",
+      "surfaceHover": "#E3EDF3",
+      "surfaceActive": "#D8E5ED",
+      "text": "#1F2E38",
+      "textMuted": "#4A6B82",
+      "textSubtle": "#56707F",
+      "accent": "#4A6B82",
+      "accentHover": "#5C82A0",
+      "accentText": "#FFFFFF",
+      "border": "#D3E0E8",
+      "borderStrong": "#8FA6B5",
+      "focusRing": "#4A6B82",
+      "success": "#2F4A3C",
+      "danger": "#B04A45"
+    },
+    "dimension": {
+      "radiusSm": "8px",
+      "radiusMd": "14px",
+      "radiusLg": "22px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "space-grotesk",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#1F2E3814" },
+      "elevated": [
+        { "x": 0, "y": 10, "blur": 28, "spread": -6, "color": "#1F2E3824" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#1F2E3812" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.03,
+    "glow": 0.1,
+    "motion": 1.2,
+    "blur": 22,
+    "ambience": 0.72,
+    "density": 0.5,
+    "scale": 1.15,
+    "seed": 1947
+  }
+}

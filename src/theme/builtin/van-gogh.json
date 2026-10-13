@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "van-gogh",
+  "name": "Van Gogh",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "dark",
+  "description": "Ultramarine and cadmium yellow. The real Starry Night, advected by its own brushwork.",
+  "motif": "starry-flow",
+  "tokens": {
+    "color": {
+      "bg": "#0B1A4A",
+      "bgElevated": "#102255",
+      "surface": "#14295F",
+      "surfaceHover": "#1B3475",
+      "surfaceActive": "#23408C",
+      "text": "#F4E9C8",
+      "textMuted": "#AEC0E8",
+      "textSubtle": "#7E8FC4",
+      "accent": "#F5C518",
+      "accentHover": "#FFD84D",
+      "accentText": "#0B1A4A",
+      "border": "#1E3A8A",
+      "borderStrong": "#2F55B8",
+      "focusRing": "#F5C518",
+      "success": "#4FC3A1",
+      "danger": "#FF7085"
+    },
+    "dimension": {
+      "radiusSm": "4px",
+      "radiusMd": "10px",
+      "radiusLg": "18px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "fraunces",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#00000073" },
+      "elevated": [
+        { "x": 0, "y": 8, "blur": 26, "spread": -4, "color": "#000000a6" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#00000059" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.35,
+    "glow": 0.34,
+    "motion": 0.9,
+    "blur": 14,
+    "ambience": 0.82,
+    "density": 0.68,
+    "scale": 1,
+    "seed": 1889
+  }
+}

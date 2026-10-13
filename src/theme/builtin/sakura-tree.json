@@ -1,0 +1,65 @@
+{
+  "$schema": "https://tincture.app/theme.schema.json",
+  "id": "sakura-tree",
+  "name": "Sakura Tree",
+  "author": "tincture",
+  "date": "2026-10-12",
+  "version": "1.0.0",
+  "license": "MIT",
+  "appearance": "light",
+  "description": "Washi paper, ink and blossom. One seeded tree, the same tree every time you open it.",
+  "motif": "sakura-tree",
+  "tokens": {
+    "color": {
+      "bg": "#FBF7F2",
+      "bgElevated": "#FFFFFF",
+      "surface": "#FFFFFF",
+      "surfaceHover": "#F5EFE9",
+      "surfaceActive": "#EFE7DF",
+      "text": "#2B2622",
+      "textMuted": "#6B6157",
+      "textSubtle": "#7A6F63",
+      "accent": "#D4738C",
+      "accentHover": "#E58FA6",
+      "accentText": "#2B2622",
+      "border": "#EAE0D6",
+      "borderStrong": "#D8C9BC",
+      "focusRing": "#D4738C",
+      "success": "#7C8B6F",
+      "danger": "#C2544F"
+    },
+    "dimension": {
+      "radiusSm": "10px",
+      "radiusMd": "16px",
+      "radiusLg": "24px",
+      "radiusFull": "9999px",
+      "spaceXs": "4px",
+      "spaceSm": "8px",
+      "spaceMd": "16px",
+      "spaceLg": "24px",
+      "spaceXl": "40px"
+    },
+    "fontFamily": {
+      "display": "fraunces",
+      "body": "manrope",
+      "mono": "jetbrains-mono"
+    },
+    "shadow": {
+      "card": { "x": 0, "y": 1, "blur": 2, "spread": 0, "color": "#2B262212" },
+      "elevated": [
+        { "x": 0, "y": 10, "blur": 26, "spread": -6, "color": "#2B26221f" },
+        { "x": 0, "y": 2, "blur": 6, "spread": 0, "color": "#2B26220f" }
+      ]
+    }
+  },
+  "effects": {
+    "grain": 0.015,
+    "glow": 0.16,
+    "motion": 1,
+    "blur": 10,
+    "ambience": 0.75,
+    "density": 0.6,
+    "scale": 1.1,
+    "seed": 108
+  }
+}

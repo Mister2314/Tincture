@@ -1,4 +1,5 @@
 import { Button, Field, Switch, ViewHeader } from '../../ui/primitives';
+import { WheelField } from '../../ui/Wheel';
 import { useStore } from '../state/store';
 
 const minutes = (ms: number) => Math.round(ms / 60_000);
@@ -34,69 +35,43 @@ export function SettingsView() {
       <div className="card stack" style={{ marginBottom: 'var(--t-dimension-space-lg)' }}>
         <h2 style={{ fontSize: 15 }}>Timer</h2>
 
-        <Field label="Focus length" htmlFor="focus-length" hint="1–180 minutes.">
-          <input
-            id="focus-length"
-            className="input"
-            type="number"
-            min={1}
-            max={180}
-            value={minutes(settings.config.focusMs)}
-            onChange={(e) =>
-              setConfig({
-                focusMs: Math.min(180, Math.max(1, Number(e.target.value) || 25)) * 60_000,
-              })
-            }
-          />
-        </Field>
+        <WheelField
+          label="Focus length"
+          hint="1–180 minutes."
+          value={minutes(settings.config.focusMs)}
+          onChange={(next) => setConfig({ focusMs: next * 60_000 })}
+          min={1}
+          max={180}
+          unit="min"
+        />
 
-        <Field label="Short break" htmlFor="short-break">
-          <input
-            id="short-break"
-            className="input"
-            type="number"
-            min={1}
-            max={60}
-            value={minutes(settings.config.shortBreakMs)}
-            onChange={(e) =>
-              setConfig({
-                shortBreakMs: Math.min(60, Math.max(1, Number(e.target.value) || 5)) * 60_000,
-              })
-            }
-          />
-        </Field>
+        <WheelField
+          label="Short break"
+          value={minutes(settings.config.shortBreakMs)}
+          onChange={(next) => setConfig({ shortBreakMs: next * 60_000 })}
+          min={1}
+          max={60}
+          unit="min"
+        />
 
-        <Field label="Long break" htmlFor="long-break">
-          <input
-            id="long-break"
-            className="input"
-            type="number"
-            min={1}
-            max={180}
-            value={minutes(settings.config.longBreakMs)}
-            onChange={(e) =>
-              setConfig({
-                longBreakMs: Math.min(180, Math.max(1, Number(e.target.value) || 15)) * 60_000,
-              })
-            }
-          />
-        </Field>
+        <WheelField
+          label="Long break"
+          value={minutes(settings.config.longBreakMs)}
+          onChange={(next) => setConfig({ longBreakMs: next * 60_000 })}
+          min={1}
+          max={180}
+          unit="min"
+        />
 
-        <Field label="Long break after" htmlFor="long-every" hint="How many focus sessions between long breaks.">
-          <input
-            id="long-every"
-            className="input"
-            type="number"
-            min={2}
-            max={12}
-            value={settings.config.longBreakEvery}
-            onChange={(e) =>
-              setConfig({
-                longBreakEvery: Math.min(12, Math.max(2, Number(e.target.value) || 4)),
-              })
-            }
-          />
-        </Field>
+        <WheelField
+          label="Long break after"
+          hint="How many focus sessions between long breaks."
+          value={settings.config.longBreakEvery}
+          onChange={(next) => setConfig({ longBreakEvery: next })}
+          min={2}
+          max={12}
+          unit="sessions"
+        />
 
         <Switch
           checked={settings.config.autoStartBreaks}
@@ -115,22 +90,15 @@ export function SettingsView() {
       <div className="card stack" style={{ marginBottom: 'var(--t-dimension-space-lg)' }}>
         <h2 style={{ fontSize: 15 }}>Goals and feedback</h2>
 
-        <Field label="Daily goal" htmlFor="daily-goal" hint="Focus sessions per day.">
-          <input
-            id="daily-goal"
-            className="input"
-            type="number"
-            min={1}
-            max={30}
-            value={settings.dailyGoal}
-            onChange={(e) =>
-              dispatch({
-                type: 'settings/patch',
-                patch: { dailyGoal: Math.min(30, Math.max(1, Number(e.target.value) || 8)) },
-              })
-            }
-          />
-        </Field>
+        <WheelField
+          label="Daily goal"
+          hint="Focus sessions per day."
+          value={settings.dailyGoal}
+          onChange={(next) => dispatch({ type: 'settings/patch', patch: { dailyGoal: next } })}
+          min={1}
+          max={30}
+          unit="sessions"
+        />
 
         <Switch
           checked={settings.soundEnabled}
@@ -165,7 +133,19 @@ export function SettingsView() {
             onChange={(e) => dispatch({ type: 'settings/patch', patch: { name: e.target.value } })}
           />
         </Field>
-        <Button onClick={() => dispatch({ type: 'view/set', view: 'timer' })}>
+        {/*
+          This button used to dispatch `view/set: 'timer'`, which did nothing — the intro
+          is not a view, it is what `App` renders instead of the shell while
+          `settings.onboarded` is false. So the button looked broken because it was.
+          The view is reset too, so finishing the intro lands on the timer rather than
+          dropping you back on Settings.
+        */}
+        <Button
+          onClick={() => {
+            dispatch({ type: 'view/set', view: 'timer' });
+            dispatch({ type: 'settings/patch', patch: { onboarded: false } });
+          }}
+        >
           Show the intro again
         </Button>
       </div>

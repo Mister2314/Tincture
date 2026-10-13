@@ -8,12 +8,32 @@
  */
 
 import daylight from './builtin/daylight.json';
+import ember from './builtin/ember.json';
+import frost from './builtin/frost.json';
+import herbarium from './builtin/herbarium.json';
 import midnight from './builtin/midnight.json';
-import sakura from './builtin/sakura.json';
-import starryNight from './builtin/starry-night.json';
+import neonRain from './builtin/neon-rain.json';
+import sakuraTree from './builtin/sakura-tree.json';
+import terminalAmber from './builtin/terminal-amber.json';
+import vanGogh from './builtin/van-gogh.json';
 import { parseTheme, type ResolvedTheme } from './validate';
 
-const SOURCES: readonly unknown[] = [midnight, daylight, starryNight, sakura];
+/**
+ * The two safe neutrals first — they are the themes a new user sees and the fallback the
+ * app can always paint. The seven character themes follow, each with its own motif; no two
+ * of them are the same idea in a different hue.
+ */
+const SOURCES: readonly unknown[] = [
+  midnight,
+  daylight,
+  vanGogh,
+  terminalAmber,
+  ember,
+  neonRain,
+  sakuraTree,
+  herbarium,
+  frost,
+];
 
 function parseAll(): ResolvedTheme[] {
   const out: ResolvedTheme[] = [];

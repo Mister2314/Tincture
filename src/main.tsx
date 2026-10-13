@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App';
 import { StoreProvider } from './app/state/store';
+import './styles/fonts.css';
 import './styles/app.css';
 
 const container = document.getElementById('root');

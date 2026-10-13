@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { THEME_TOKEN_NAMES, FONT_FAMILIES } from '../../theme/schema';
+import { THEME_TOKEN_NAMES, FONT_FAMILIES, MOTIFS } from '../../theme/schema';
 import { applyTheme } from '../../theme/apply';
 import { parseTheme } from '../../theme/validate';
 import { Button, Dialog, Field, useToast } from '../../ui/primitives';
@@ -34,6 +34,7 @@ export function blankDraft(): Draft {
     license: 'MIT',
     appearance: 'dark',
     description: '',
+    motif: 'none',
     tokens: {
       color: {
         bg: '#101014',
@@ -77,7 +78,7 @@ export function blankDraft(): Draft {
         ],
       },
     },
-    effects: { grain: 0.03, glow: 0.25, motion: 1, blur: 12 },
+    effects: { grain: 0.03, glow: 0.25, motion: 1, blur: 12, ambience: 0, density: 0.5, scale: 1, seed: 1 },
   };
 }
 
@@ -261,7 +262,7 @@ export function ThemeBuilder({ open, onClose }: { open: boolean; onClose: () => 
             role="tab"
             aria-selected={tab === key}
           >
-            {key === 'colour' ? 'Colours' : key === 'shape' ? 'Shape & type' : key === 'motion' ? 'Motion' : 'JSON'}
+            {key === 'colour' ? 'Colours' : key === 'shape' ? 'Shape & type' : key === 'motion' ? 'Motion & motif' : 'JSON'}
           </Button>
         ))}
       </div>
@@ -479,6 +480,64 @@ export function ThemeBuilder({ open, onClose }: { open: boolean; onClose: () => 
             step={1}
             format={(v) => `${v}px`}
             onChange={(v) => update('effects.blur', v)}
+          />
+
+          <div className="divider" />
+
+          <Field
+            label="Background motif"
+            hint="A motif is a name, never a file: the app owns the renderer, so a theme cannot carry code or an image. It paints behind the whole app — apply the theme to see it."
+            htmlFor="motif"
+          >
+            <select
+              id="motif"
+              className="select"
+              value={String(getPath(draft, 'motif') ?? 'none')}
+              onChange={(e) => update('motif', e.target.value)}
+            >
+              {MOTIFS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Slider
+            label="Ambience strength"
+            value={Number(getPath(draft, 'effects.ambience') ?? 0)}
+            min={0}
+            max={1}
+            step={0.05}
+            format={(v) => (v === 0 ? 'off' : v.toFixed(2))}
+            onChange={(v) => update('effects.ambience', v)}
+          />
+          <Slider
+            label="Density"
+            value={Number(getPath(draft, 'effects.density') ?? 0.5)}
+            min={0}
+            max={1}
+            step={0.05}
+            format={(v) => v.toFixed(2)}
+            onChange={(v) => update('effects.density', v)}
+          />
+          <Slider
+            label="Scale"
+            value={Number(getPath(draft, 'effects.scale') ?? 1)}
+            min={0.2}
+            max={3}
+            step={0.05}
+            format={(v) => `${v.toFixed(2)}×`}
+            onChange={(v) => update('effects.scale', v)}
+          />
+          <Slider
+            label="Seed"
+            value={Number(getPath(draft, 'effects.seed') ?? 1)}
+            min={0}
+            max={999999}
+            step={1}
+            format={(v) => String(Math.round(v))}
+            onChange={(v) => update('effects.seed', Math.round(v))}
           />
         </div>
       )}
