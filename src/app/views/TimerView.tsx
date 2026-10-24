@@ -118,6 +118,19 @@ export function TimerView() {
       </div>
 
       <div className="timer__dial">
+        {/*
+          The breathing halo — the app's signature ambient state. It is the timer's own
+          light, not the theme's motif: while the session runs it breathes on a slow cycle,
+          and in the last fifth of the phase it brightens. Pure CSS (one composited layer,
+          transform/opacity only), so a 25-minute session costs no rAF and no re-render.
+          Reduced motion turns it into a still, soft glow.
+        */}
+        <div
+          className="timer__breath"
+          data-running={timer.status === 'running' || undefined}
+          data-ending={timer.status !== 'idle' && done > 0.8 ? '' : undefined}
+          aria-hidden="true"
+        />
         <svg className="timer__ring" viewBox="0 0 100 100" aria-hidden="true">
           <circle
             className="timer__ring-track"

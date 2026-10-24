@@ -64,14 +64,36 @@ function Shell() {
   // dialog is open.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.code !== 'Space') return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.code !== 'Space' && event.key !== 'r' && event.key !== 's' && !/^[1-6]$/.test(event.key))
+        return;
       const target = event.target as HTMLElement | null;
       if (target?.isContentEditable) return;
       if (target?.closest(SPACE_OWNS_FOCUS)) return;
       if (document.querySelector('.dialog-backdrop')) return;
 
+      // Modifier-free single keys: R resets, S skips, 1–6 jump to a view. The Space guard
+      // list above already covers every element that owns single-key activation; a shortcut
+      // that swallowed a keystroke inside a task input would be a data-loss bug, so the
+      // same guard is deliberately shared rather than duplicated per key.
+      if (event.code === 'Space') {
+        event.preventDefault();
+        dispatch({ type: 'timer/toggle' });
+        return;
+      }
+      if (event.key === 'r') {
+        event.preventDefault();
+        dispatch({ type: 'timer/reset' });
+        return;
+      }
+      if (event.key === 's') {
+        event.preventDefault();
+        dispatch({ type: 'timer/skip' });
+        return;
+      }
+      const index = Number(event.key) - 1;
       event.preventDefault();
-      dispatch({ type: 'timer/toggle' });
+      dispatch({ type: 'view/set', view: NAV[index].view });
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
