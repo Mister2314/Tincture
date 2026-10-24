@@ -64,14 +64,39 @@ function Shell() {
   // dialog is open.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.code !== 'Space') return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.code !== 'Space' && event.key !== 'r' && event.key !== 's' && !/^[1-6]$/.test(event.key))
+        return;
       const target = event.target as HTMLElement | null;
       if (target?.isContentEditable) return;
-      if (target?.closest(SPACE_OWNS_FOCUS)) return;
       if (document.querySelector('.dialog-backdrop')) return;
 
+      if (event.code === 'Space') {
+        // Space is the browser's "activate the focused control" key, so it only fires when
+        // focus is somewhere that has no Space action of its own — otherwise the nav, the
+        // timer controls and every checkbox become unreachable by keyboard.
+        if (target?.closest(SPACE_OWNS_FOCUS)) return;
+        event.preventDefault();
+        dispatch({ type: 'timer/toggle' });
+        return;
+      }
+
+      // Letters and digits activate nothing natively, so they are safe even when a button
+      // holds focus; they are only blocked where they would type into something.
+      if (target?.closest('input, textarea, select')) return;
+      if (event.key === 'r') {
+        event.preventDefault();
+        dispatch({ type: 'timer/reset' });
+        return;
+      }
+      if (event.key === 's') {
+        event.preventDefault();
+        dispatch({ type: 'timer/skip' });
+        return;
+      }
+      const index = Number(event.key) - 1;
       event.preventDefault();
-      dispatch({ type: 'timer/toggle' });
+      dispatch({ type: 'view/set', view: NAV[index].view });
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

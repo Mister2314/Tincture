@@ -2,7 +2,7 @@
 
 Pomodoro focus timer with a community theme system — themes are typed JSON tokens, never CSS.
 
-**Live demo:** —
+**Live demo:** [tincture.vercel.app](https://tincture.vercel.app)
 
 <div align="center">
 
@@ -43,6 +43,8 @@ React 19 · Vite 8 · TypeScript (strict) · zod (theme schema only) · vitest �
 - Countdown derived from an anchor timestamp, not incremented — a throttled tab, a suspended laptop or a reload cannot make it drift
 - Theme validation is typed and closed-list: unknown keys rejected, hex-only colours, fixed unit set, bundled font whitelist
 - `localStorage` treated as untrusted — it passes through the same validator as a downloaded theme
+- Each theme paints its own ambient canvas motif; the running timer adds a breathing halo that brightens near the end of a session (reduced-motion aware — it becomes a still glow)
+- Keyboard-first: `Space` start/pause, `R` reset, `S` skip, `1–6` sections — never while typing or a dialog is open
 - Tasks with pomodoro estimates, 14-day statistics, long break every fourth session
 - Theme builder in-app plus import/export as JSON; community gallery via GitHub API
 

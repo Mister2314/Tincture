@@ -92,6 +92,15 @@ export function SettingsView() {
       </div>
 
       <div className="card stack" style={{ marginBottom: 'var(--t-dimension-space-lg)' }}>
+        <h2 style={{ fontSize: 15 }}>Keyboard</h2>
+        <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.7, margin: 0 }}>
+          <kbd>Space</kbd> start / pause · <kbd>R</kbd> reset · <kbd>S</kbd> skip ·{' '}
+          <kbd>1</kbd>–<kbd>6</kbd> sections. They never fire while you are typing or a dialog
+          is open.
+        </p>
+      </div>
+
+      <div className="card stack" style={{ marginBottom: 'var(--t-dimension-space-lg)' }}>
         <h2 style={{ fontSize: 15 }}>Goals and feedback</h2>
 
         <WheelField
