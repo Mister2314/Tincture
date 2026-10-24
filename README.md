@@ -1,4 +1,4 @@
-﻿# Tincture
+# Tincture
 
 Pomodoro focus timer with a community theme system — themes are typed JSON tokens, never CSS.
 
@@ -12,7 +12,21 @@ Pomodoro focus timer with a community theme system — themes are typed JSON tok
 
 </div>
 
+
+<div align="center">
+
+<details>
+<summary>More screenshots — timer, builder, themes</summary>
+
+<p>
 <img src="docs/screenshot-timer.png" alt="The timer, running" width="380">
+<img src="docs/screenshot-builder.png" alt="Theme builder" width="380">
+<img src="docs/screenshot-themes.png" alt="Community themes" width="380">
+</p>
+
+</details>
+
+</div>
 
 ## What it does
 
