@@ -435,7 +435,7 @@ h4 {
    of a phase brightens it. Transform/opacity only, so it composites and costs nothing. */
 .timer__breath {
   position: absolute;
-  inset: -18%;
+  inset: -10%;
   border-radius: 50%;
   pointer-events: none;
   opacity: 0.16;

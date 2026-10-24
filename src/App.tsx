@@ -69,18 +69,21 @@ function Shell() {
         return;
       const target = event.target as HTMLElement | null;
       if (target?.isContentEditable) return;
-      if (target?.closest(SPACE_OWNS_FOCUS)) return;
       if (document.querySelector('.dialog-backdrop')) return;
 
-      // Modifier-free single keys: R resets, S skips, 1–6 jump to a view. The Space guard
-      // list above already covers every element that owns single-key activation; a shortcut
-      // that swallowed a keystroke inside a task input would be a data-loss bug, so the
-      // same guard is deliberately shared rather than duplicated per key.
       if (event.code === 'Space') {
+        // Space is the browser's "activate the focused control" key, so it only fires when
+        // focus is somewhere that has no Space action of its own — otherwise the nav, the
+        // timer controls and every checkbox become unreachable by keyboard.
+        if (target?.closest(SPACE_OWNS_FOCUS)) return;
         event.preventDefault();
         dispatch({ type: 'timer/toggle' });
         return;
       }
+
+      // Letters and digits activate nothing natively, so they are safe even when a button
+      // holds focus; they are only blocked where they would type into something.
+      if (target?.closest('input, textarea, select')) return;
       if (event.key === 'r') {
         event.preventDefault();
         dispatch({ type: 'timer/reset' });
