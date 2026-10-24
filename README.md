@@ -1,8 +1,16 @@
-# Tincture
+﻿# Tincture
 
 Pomodoro focus timer with a community theme system — themes are typed JSON tokens, never CSS.
 
 **Live demo:** —
+
+<div align="center">
+
+| Desktop | Mobile |
+|---|---|
+| <img src="docs/shot-desktop.png" alt="Desktop view" width="700"> | <img src="docs/shot-mobile.png" alt="Mobile view" width="290"> |
+
+</div>
 
 <img src="docs/screenshot-timer.png" alt="The timer, running" width="380">
 
