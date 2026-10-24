@@ -459,6 +459,27 @@ h4 {
   animation-name: timer-breath-ending;
 }
 
+/* Breaks cool the light down — focus is the warm lamp, a break is the room
+   resting. The cool half is a fixed neutral, not a theme token: it is a
+   temperature, and every theme's accent cools toward the same grey-blue. */
+.timer__breath[data-phase='shortBreak'],
+.timer__breath[data-phase='longBreak'] {
+  background: radial-gradient(
+    circle,
+    color-mix(
+      in srgb,
+      color-mix(in srgb, var(--t-color-accent) 72%, #8fb4c4) 42%,
+      transparent
+    ),
+    transparent 68%
+  );
+}
+
+.timer__breath[data-running][data-phase='shortBreak'],
+.timer__breath[data-running][data-phase='longBreak'] {
+  animation-duration: calc(4.5s * var(--motion-scale, 1));
+}
+
 @keyframes timer-breath {
   0%,
   100% {
@@ -2272,24 +2293,32 @@ input[type='range']:focus-visible {
     font-size: 18px;
   }
 
-  /* Six pills do not fit a 390px row next to the brand; one tidy scroll line beats a
-     two-row wrap that pushes the timer below the fold. */
+  /* Six pills fit 360px on their own line under the brand: slightly smaller type,
+     tighter padding, distributed across the full width. This replaced a horizontal
+     scroll strip — a scroll container's off-screen items trip the no-overflow gate,
+     and a thumb should never have to hunt for the end of its own navigation. */
+  .header {
+    flex-wrap: wrap;
+  }
+
   .nav {
     margin-left: 0;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .nav::-webkit-scrollbar {
-    display: none;
+    width: 100%;
+    gap: 2px;
+    justify-content: space-between;
+    overflow-x: visible;
   }
 
   .nav__item {
-    flex: 0 0 auto;
-    padding: 8px 12px; /* ≥44px hit target with the line-height */
-    font-size: 13px;
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px; /* one-hand hit target, kept even at the tighter width */
+    padding: var(--t-dimension-space-sm) 6px;
+    font-size: 12px;
+    text-align: center;
   }
 
   .onboarding__panel {

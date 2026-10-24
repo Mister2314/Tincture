@@ -127,6 +127,7 @@ export function TimerView() {
         */}
         <div
           className="timer__breath"
+          data-phase={timer.phase}
           data-running={timer.status === 'running' || undefined}
           data-ending={timer.status !== 'idle' && done > 0.8 ? '' : undefined}
           aria-hidden="true"
